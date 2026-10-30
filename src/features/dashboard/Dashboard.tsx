@@ -7,7 +7,12 @@ import { programDay, phaseOf, PHASE_LABEL } from '../../domain/program';
 import { MS_DAY, type TrackResult } from '../../domain/tracks';
 import { timelinePosition, EVIDENCE_LABEL } from '../../domain/timeline';
 import type { TrackId } from '../../domain/types';
-import { Button, Card, Label, Progress } from '../../ui';
+import { Button, Card, Label, Progress, useToast } from '../../ui';
+import { PlanCard } from './PlanCard';
+import { ReviewCard } from '../trends/ReviewCard';
+import { shareProgress } from '../../app/share';
+import { updateSettings } from '../../data/repos';
+import { isSunday } from '../../domain/review';
 
 const TRACK_LABEL: Record<TrackId, string> = { tobaccoOrVape: 'Sem tabaco ou vape', combustion: 'Sem cigarro', vape: 'Sem vape', nicotine: 'Sem nicotina' };
 const MOODS = [
@@ -33,6 +38,7 @@ function TrackRow({ t }: { t: TrackResult }) {
 export function Dashboard() {
   const data = useData();
   const nav = useNavigate();
+  const toast = useToast();
   if (!data) return null;
   const { profile, events, settings, now, tracks } = data;
   const main = tracks.tobaccoOrVape;
@@ -57,9 +63,14 @@ export function Dashboard() {
           <h1 className="mt-1 text-[1.75rem] font-bold leading-tight">{greeting}.</h1>
           <div className="text-[0.85rem] text-ink-3">{formatDate(now, profile.tz)} · {day >= 0 ? `dia ${day}` : `${-day} ${-day === 1 ? 'dia' : 'dias'} para o dia zero`}</div>
         </div>
-        <Link to="/ajustes" aria-label="Ajustes" className="press flex h-11 w-11 items-center justify-center rounded-full bg-card-2 text-xl">
-          ⚙
-        </Link>
+        <div className="flex gap-2">
+          <button type="button" aria-label={settings.discreetMode ? 'Mostrar números' : 'Modo discreto'} aria-pressed={settings.discreetMode} onClick={() => updateSettings({ discreetMode: !settings.discreetMode })} className={`press flex h-11 w-11 items-center justify-center rounded-full text-lg ${settings.discreetMode ? 'bg-accent/20 text-accent' : 'bg-card-2'}`} data-testid="discreet">
+            {settings.discreetMode ? '◉' : '◎'}
+          </button>
+          <Link to="/ajustes" aria-label="Ajustes" className="press flex h-11 w-11 items-center justify-center rounded-full bg-card-2 text-xl">
+            ⚙
+          </Link>
+        </div>
       </header>
 
       <Button variant="primary" full size="lg" className="min-h-[68px] text-[1.1rem]" onClick={() => nav('/sos')} data-testid="sos">
@@ -95,8 +106,22 @@ export function Dashboard() {
             </div>
             <span className="pb-1 text-[0.85rem] text-ink-3">desde {main.currentStartAt ? formatDate(main.currentStartAt, profile.tz) : '—'}</span>
           </div>
+          <button
+            type="button"
+            className="mt-4 text-[0.85rem] font-semibold text-accent"
+            data-testid="share"
+            onClick={async () => {
+              const r = await shareProgress({ days: wholeDays(main.totalFreeMs), best: humanDuration(Math.max(main.bestMs, bestFromHistory)), since: main.runStartAt ? formatDate(main.runStartAt, profile.tz) : formatDate(profile.quitAt, profile.tz), dark: document.documentElement.classList.contains('dark') });
+              if (r === 'downloaded') toast('Imagem salva.');
+            }}
+          >
+            Compartilhar progresso →
+          </button>
         </Card>
       )}
+
+      {!preparing && !relapsing ? <PlanCard day={day} events={events} tz={profile.tz} /> : null}
+      {isSunday(now, profile.tz) && events.length > 0 ? <ReviewCard events={events} now={now} /> : null}
 
       {!preparing && !relapsing && (tl.current || tl.next) ? (
         <Link to="/linha-do-tempo" className="block">

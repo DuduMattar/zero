@@ -34,7 +34,13 @@ Aplicado: relógio de saúde separado da sequência contínua (lapso isolado nã
 Recusado (decisão): manchete = tempo desde o último consumo (mantido acumulado + recorde, com sequência em destaque); onboarding de 3 telas; remover projeção de 5 anos.
 Testes: 43 unitários, 7 ponta a ponta.
 
-## V2 — escopo acordado em 30/10/2026 (restante: entregas 2 e 3)
+## V2 — entrega 2 publicada em 30/10/2026
+
+Feito: plano de 90 dias (uma atividade por dia, −7 a 90, marcável; evento `activity_done`); revisão semanal descritiva (esta semana vs anterior; card no painel aos domingos e sempre em Tendências); objetivos para o dinheiro com progresso pela economia líquida; compartilhar progresso como imagem gerada no aparelho; "Ler meus motivos" dentro do SOS; modo discreto (ícone no painel + Ajustes); perfil editável (produtos, gatilhos, motivos, metas/plano de emergência, história); registro de doses de reposição de nicotina com orientação SUS; exportar CSV; Tendências carregada sob demanda (chunk separado).
+Testes: 47 unitários, 8 ponta a ponta.
+
+## V2 — restante (entrega 3)
+Relatório PDF via impressão, carta para o futuro, esportes (entrada manual), som opcional no SOS, "ver mensagens anteriores".
 
 ### Correções de experiência (pedidas pelo usuário)
 1. **Consumo sem conta de cabeça.** Pergunta por produto, na unidade em que a pessoa pensa: pod → "um pod dura quantos dias?" ou "quantos pods por semana?"; cigarro → "maços por dia" ou "cigarros por dia"; tabaco enrolado → "pacotes por semana"; sachê → "latas por semana". Chips com valores típicos (ex.: 1 pod a cada 3 dias) e campo livre. Preço na mesma unidade (preço do pod, do maço, do pacote). O app converte para unidades/dia e mostra na hora: "≈ R$ 180 por mês". Opção "não sei" que desliga o dinheiro sem travar o onboarding. Mesmo componente em Ajustes.

@@ -176,4 +176,48 @@ test.describe('ZERO V1', () => {
     await expect(page.getByText('Mensagem do dia')).toBeVisible();
     await expect(page.getByText('Olfato e paladar melhoram')).toBeVisible();
   });
+
+  test('V2 entrega 2: plano do dia, objetivo, revisão, motivos no SOS, discreto, perfil, CSV, compartilhar', async ({ page }) => {
+    // Chrome headless expõe navigator.share mas nunca resolve; sem ele o app cai no download, que é o que testamos.
+    await page.addInitScript(() => { Object.defineProperty(navigator, 'share', { value: undefined }); Object.defineProperty(navigator, 'canShare', { value: undefined }); });
+    await onboard(page, 2);
+    // plano do dia
+    await expect(page.getByTestId('plan-card')).toBeVisible();
+    await page.getByTestId('plan-done').click();
+    await expect(page.getByTestId('plan-card')).toContainText('Feito hoje');
+    // compartilhar (sem Web Share no Chrome headless → download)
+    const dl = page.waitForEvent('download');
+    await page.getByTestId('share').click();
+    expect((await dl).suggestedFilename()).toMatch(/zero-2-dias\.png/);
+    // modo discreto
+    await page.getByTestId('discreet').click();
+    await expect(page.locator('html')).toHaveClass(/discreet/);
+    await page.getByTestId('discreet').click();
+    await expect(page.locator('html')).not.toHaveClass(/discreet/);
+    // motivos no SOS
+    await page.getByTestId('sos').click();
+    await page.getByTestId('sos-toggle-reasons').click();
+    await expect(page.getByTestId('sos-reasons')).toContainText('Dormir melhor');
+    await page.getByRole('button', { name: 'Fechar' }).click();
+    // objetivo de dinheiro
+    await page.getByRole('link', { name: 'Tendências' }).click();
+    await page.getByTestId('goal-title').fill('Tênis novo');
+    await page.getByTestId('goal-amount').fill('20');
+    await page.getByTestId('goal-add').click();
+    await expect(page.getByText('✓ Tênis novo')).toBeVisible(); // R$24 economizados em 2 dias ≥ R$20
+    await expect(page.getByTestId('review-card')).toContainText('Revisão da semana');
+    // perfil editável
+    await page.goto('/#/ajustes/perfil');
+    await page.getByRole('button', { name: 'Tabaco aquecido' }).click();
+    await page.getByRole('button', { name: 'Salvar perfil' }).click();
+    await expect(page).not.toHaveURL(/perfil/);
+    await page.goto('/#/');
+    await expect(page.getByText('Sem cigarro')).toBeVisible();
+    // CSV
+    await page.getByRole('link', { name: 'Histórico' }).click();
+    const csv = page.waitForEvent('download');
+    await page.getByTestId('csv').click();
+    expect((await csv).suggestedFilename()).toBe('zero-historico.csv');
+    await expect(page.getByTestId('ev-activity_done')).toBeVisible();
+  });
 });

@@ -5,6 +5,7 @@ import { deleteEvent } from '../../data/repos';
 import { cravingDrop } from '../../domain/craving';
 import { formatDate, formatDateTime, formatTime, humanDuration } from '../../domain/format';
 import { calendarDays } from '../../domain/stats';
+import { eventsToCsv } from '../../domain/csv';
 import { productById, type AppEvent } from '../../domain/types';
 import { strategyById, triggerLabel } from '../../content/strategies';
 import { Button, Card, Chip, EmptyState, Label, useConfirm, useToast } from '../../ui';
@@ -35,6 +36,10 @@ function describe(e: AppEvent, tz: string): { title: string; sub: string; tone: 
       return { title: 'Conquista', sub: e.achievementId, tone: 'text-accent' };
     case 'backup_made':
       return { title: 'Backup externo', sub: `${e.eventCount} eventos`, tone: 'text-ink-3' };
+    case 'activity_done':
+      return { title: 'Atividade do plano feita', sub: `dia ${e.day}`, tone: 'text-accent' };
+    case 'nrt_dose':
+      return { title: 'Dose de reposição de nicotina', sub: `${{ patch: 'adesivo', gum: 'goma', lozenge: 'pastilha', other: 'outro' }[e.kind]}${e.mg ? ` · ${e.mg} mg` : ''}`, tone: 'text-calm' };
   }
 }
 
@@ -145,6 +150,23 @@ export function History() {
         ))
       )}
       <div className="text-[0.75rem] text-ink-3">Só registros feitos nas últimas 24 h podem ser apagados (erro de digitação).</div>
+      <Button
+        full
+        data-testid="csv"
+        onClick={() => {
+          const blob = new Blob([eventsToCsv(events, profile.tz)], { type: 'text/csv;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'zero-historico.csv';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 10_000);
+        }}
+      >
+        Exportar CSV
+      </Button>
     </div>
   );
 }

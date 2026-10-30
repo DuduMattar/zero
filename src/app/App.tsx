@@ -1,10 +1,10 @@
-import { useEffect } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { HashRouter, Navigate, NavLink, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useProfile, useSettings } from '../data/queries';
 import { Providers } from './providers';
 import { Onboarding } from '../features/onboarding/Onboarding';
 import { Dashboard } from '../features/dashboard/Dashboard';
-import { Trends } from '../features/trends/Trends';
+const Trends = lazy(() => import('../features/trends/Trends').then((m) => ({ default: m.Trends })));
 import { Sos } from '../features/sos/Sos';
 import { SlipPage } from '../features/slips/SlipPage';
 import { Diary } from '../features/diary/Diary';
@@ -13,6 +13,7 @@ import { TimelinePage } from '../features/timeline/TimelinePage';
 import { SettingsPage } from '../features/settings/SettingsPage';
 import { BackupPage } from '../features/settings/BackupPage';
 import { InstallPage } from '../features/settings/InstallPage';
+import { ProfilePage } from '../features/settings/ProfilePage';
 import { AchievementWatcher } from './AchievementWatcher';
 
 const DEEP_LINKS: Record<string, string> = { sos: '/sos', diary: '/diario', diario: '/diario', backup: '/ajustes/backup', lapso: '/lapso', slip: '/lapso', history: '/historico', historico: '/historico', tendencias: '/tendencias', today: '/', hoje: '/' };
@@ -85,7 +86,7 @@ export function App() {
           <Route element={<Gate />}>
             <Route element={<Shell />}>
               <Route path="/" element={<Dashboard />} />
-              <Route path="/tendencias" element={<Trends />} />
+              <Route path="/tendencias" element={<Suspense fallback={<div className="space-y-4"><div className="skeleton h-12" /><div className="skeleton h-48" /><div className="skeleton h-48" /></div>}><Trends /></Suspense>} />
               <Route path="/historico" element={<History />} />
               <Route path="/linha-do-tempo" element={<TimelinePage />} />
               <Route path="/sos" element={<Sos />} />
@@ -94,6 +95,7 @@ export function App() {
               <Route path="/ajustes" element={<SettingsPage />} />
               <Route path="/ajustes/backup" element={<BackupPage />} />
               <Route path="/ajustes/instalar" element={<InstallPage />} />
+              <Route path="/ajustes/perfil" element={<ProfilePage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Route>

@@ -56,6 +56,8 @@ const eventSchema = z.discriminatedUnion('type', [
   z.object({ ...base, type: z.literal('price_change'), unitsPerDay: z.number(), pricePerUnit: z.number(), effectiveFrom: z.number() }),
   z.object({ ...base, type: z.literal('note'), text: z.string() }),
   z.object({ ...base, type: z.literal('achievement_unlocked'), achievementId: z.string() }),
+  z.object({ ...base, type: z.literal('activity_done'), day: z.number(), activityId: z.string() }),
+  z.object({ ...base, type: z.literal('nrt_dose'), kind: z.enum(['patch', 'gum', 'lozenge', 'other']), mg: z.number().nullable(), note: z.string() }),
   z.object({ ...base, type: z.literal('backup_made'), kind: z.enum(['export', 'share']), eventCount: z.number(), checksum: z.string() }),
 ]);
 
@@ -89,6 +91,7 @@ const settingsSchema = z.object({
   sosDefaultDurationSec: z.number(),
   onboardingDone: z.boolean(),
   schemaVersion: z.number(),
+  lastWeeklyReviewKey: z.string().nullable().optional(),
 });
 
 const goalSchema = z.object({ id: z.string(), title: z.string(), amount: z.number(), createdAt: z.number(), status: z.enum(['active', 'reached', 'archived']) });

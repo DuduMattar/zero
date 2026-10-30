@@ -162,6 +162,20 @@ export interface AchievementUnlockedEvent extends EventBase {
   achievementId: string;
 }
 
+export interface ActivityDoneEvent extends EventBase {
+  type: 'activity_done';
+  /** dia do programa (−7…90) */
+  day: number;
+  activityId: string;
+}
+
+export interface NrtDoseEvent extends EventBase {
+  type: 'nrt_dose';
+  kind: 'patch' | 'gum' | 'lozenge' | 'other';
+  mg: number | null;
+  note: string;
+}
+
 export interface BackupMadeEvent extends EventBase {
   type: 'backup_made';
   kind: 'export' | 'share';
@@ -179,6 +193,8 @@ export type AppEvent =
   | PriceChangeEvent
   | NoteEvent
   | AchievementUnlockedEvent
+  | ActivityDoneEvent
+  | NrtDoseEvent
   | BackupMadeEvent;
 
 export type EventType = AppEvent['type'];
@@ -202,6 +218,8 @@ export interface Settings {
   sosDefaultDurationSec: number;
   onboardingDone: boolean;
   schemaVersion: number;
+  /** semana (YYYY-WW) da última revisão semanal vista */
+  lastWeeklyReviewKey?: string | null;
 }
 
 export const DEFAULT_SETTINGS: Settings = {

@@ -9,6 +9,8 @@ import { avgDropOverall, cravingsByHour, dailySeries, topTriggers } from '../../
 import { MIN_CRAVINGS_FOR_STRATEGY } from '../../domain/thresholds';
 import { strategyById, triggerLabel } from '../../content/strategies';
 import { Card, Label, Segmented } from '../../ui';
+import { Goals } from './Goals';
+import { ReviewCard } from './ReviewCard';
 
 type Range = 7 | 30 | 90;
 
@@ -108,6 +110,10 @@ export function Trends() {
         )}
         <div className="mt-3 text-[0.75rem] text-ink-3">Se continuar sem fumar, a projeção usa o consumo e o preço atuais.</div>
       </Card>
+
+      <Goals saved={money.saved} currency={profile.currency} />
+
+      <ReviewCard events={events} now={now} />
 
       <Card className="p-6">
         <Label>Estratégias</Label>

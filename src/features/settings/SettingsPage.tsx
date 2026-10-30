@@ -21,6 +21,8 @@ export function SettingsPage() {
   const [quitAt, setQuitAt] = useState('');
   const [reasons, setReasons] = useState('');
   const [nrtEnd, setNrtEnd] = useState(() => epochToLocalInput(Date.now(), Intl.DateTimeFormat().resolvedOptions().timeZone));
+  const [doseKind, setDoseKind] = useState<'patch' | 'gum' | 'lozenge' | 'other'>('patch');
+  const [doseMg, setDoseMg] = useState('');
 
   useEffect(() => {
     storageEstimate().then(setEst);
@@ -73,6 +75,8 @@ export function SettingsPage() {
         <Label>Aparência</Label>
         <Segmented ariaLabel="Tema" value={settings.theme} onChange={(v) => updateSettings({ theme: v })} options={[{ value: 'system', label: 'Sistema' }, { value: 'dark', label: 'Escuro' }, { value: 'light', label: 'Claro' }]} />
         <Segmented ariaLabel="Movimento" value={settings.reducedMotion} onChange={(v) => updateSettings({ reducedMotion: v })} options={[{ value: 'system', label: 'Animações: sistema' }, { value: 'on', label: 'Reduzir movimento' }]} />
+        <Segmented ariaLabel="Modo discreto" value={settings.discreetMode ? 'on' : 'off'} onChange={(v) => updateSettings({ discreetMode: v === 'on' })} options={[{ value: 'off', label: 'Números visíveis' }, { value: 'on', label: 'Modo discreto' }]} />
+        <div className="text-[0.8rem] text-ink-3">Modo discreto borra os números do painel para usar o app em público. O ícone ◎ no topo do painel alterna.</div>
         <Field label="Duração padrão do SOS">
           <select className={inputCls} value={settings.sosDefaultDurationSec} onChange={(e) => updateSettings({ sosDefaultDurationSec: Number(e.target.value) })}>
             {[120, 180, 300, 600].map((s) => (
@@ -110,6 +114,16 @@ export function SettingsPage() {
         <div className="text-[0.8rem] text-ink-3">Mudanças valem daqui para a frente; o passado mantém o valor antigo.</div>
       </Card>
 
+      <Link to="/ajustes/perfil" className="block">
+        <Card className="flex items-center justify-between p-5">
+          <div>
+            <div className="font-semibold">Perfil</div>
+            <div className="text-[0.85rem] text-ink-3">Produtos, gatilhos, motivos, metas e plano de emergência.</div>
+          </div>
+          <span className="text-xl text-ink-3">›</span>
+        </Card>
+      </Link>
+
       <Card className="space-y-3">
         <Label>Marco inicial</Label>
         <Field label="Data e hora em que parou" hint="Corrige a data inicial. Para recomeçar depois de uma recaída, use 'Novo marco' na tela de lapsos.">
@@ -121,7 +135,29 @@ export function SettingsPage() {
       {tracks.nicotine.state === 'nrt' ? (
         <Card tone="warn" className="space-y-3">
           <Label>Reposição de nicotina</Label>
-          <div className="text-[13px] text-ink-2">Você está em tratamento. Quando encerrar, marque aqui: o contador "sem nicotina" começa nessa data.</div>
+          <div className="text-[13px] text-ink-2">Você está em tratamento. Registre as doses para acompanhar; quando encerrar, marque abaixo e o contador "sem nicotina" começa nessa data.</div>
+          <div className="grid grid-cols-[1fr_90px] gap-2">
+            <select className={inputCls} value={doseKind} onChange={(e) => setDoseKind(e.target.value as typeof doseKind)}>
+              <option value="patch">Adesivo</option>
+              <option value="gum">Goma</option>
+              <option value="lozenge">Pastilha</option>
+              <option value="other">Outro</option>
+            </select>
+            <input className={inputCls} inputMode="decimal" placeholder="mg" value={doseMg} onChange={(e) => setDoseMg(e.target.value)} />
+          </div>
+          <Button
+            onClick={async () => {
+              await addEvent({ ...stamp(Date.now(), profile.tz), type: 'nrt_dose', at: Date.now(), kind: doseKind, mg: doseMg ? Number(doseMg.replace(',', '.')) : null, note: '' });
+              setDoseMg('');
+              toast('Dose registrada.');
+            }}
+          >
+            Registrar dose agora
+          </Button>
+          <div className="text-[12px] text-ink-3">
+            Hoje: {data.events.filter((e) => e.type === 'nrt_dose' && formatDateTime(e.at, profile.tz).slice(0, 10) === formatDateTime(data.now, profile.tz).slice(0, 10)).length} {data.events.filter((e) => e.type === 'nrt_dose').length === 1 ? 'dose' : 'doses'} · total {data.events.filter((e) => e.type === 'nrt_dose').length}.
+            No SUS, o tratamento (adesivo + goma/pastilha, com acompanhamento) é gratuito pela UBS; a dose e a redução são decididas com o profissional, não pelo app.
+          </div>
           <Field label="Encerrei em">
             <input type="datetime-local" className={inputCls} value={nrtEnd} onChange={(e) => setNrtEnd(e.target.value)} />
           </Field>

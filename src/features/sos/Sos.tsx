@@ -22,6 +22,7 @@ export function Sos() {
   const toast = useToast();
   const [s, dispatch] = useReducer(cravingReducer, undefined, initialCraving);
   const [rateOpen, setRateOpen] = useState(false);
+  const [reasonsOpen, setReasonsOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const best = useMemo(() => (data ? bestStrategy(data.events) : null), [data]);
 
@@ -84,11 +85,23 @@ export function Sos() {
             </div>
           </div>
           {strat.guided === 'breathing' ? <BreathCue startedAt={s.startedAt} now={now} /> : null}
-          <ul className="mt-4 w-full space-y-1 px-2 text-center text-[14px] text-ink-2">
-            {strat.steps.map((st) => (
-              <li key={st}>{st}</li>
-            ))}
-          </ul>
+          {reasonsOpen ? (
+            <div className="mt-4 w-full rounded-2xl bg-card-2 p-4 text-left" data-testid="sos-reasons">
+              <Label>Meus motivos</Label>
+              <ul className="mt-2 space-y-1.5 text-[1rem]">
+                {data.profile.reasons.length ? data.profile.reasons.map((r) => <li key={r}>• {r}</li>) : <li className="text-ink-3">Você ainda não escreveu motivos. Ajustes → Perfil.</li>}
+              </ul>
+            </div>
+          ) : (
+            <ul className="mt-4 w-full space-y-1 px-2 text-center text-[14px] text-ink-2">
+              {strat.steps.map((st) => (
+                <li key={st}>{st}</li>
+              ))}
+            </ul>
+          )}
+          <button type="button" className="mt-3 text-[0.85rem] font-semibold text-ink-3" onClick={() => setReasonsOpen((v) => !v)} data-testid="sos-toggle-reasons">
+            {reasonsOpen ? 'Voltar à estratégia' : 'Ler meus motivos'}
+          </button>
         </div>
 
         <div className="space-y-3">

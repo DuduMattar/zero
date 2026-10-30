@@ -49,7 +49,7 @@ const base = { id: z.string().min(1), at: z.number(), tz: z.string(), createdAt:
 const eventSchema = z.discriminatedUnion('type', [
   z.object({ ...base, type: z.literal('craving'), strategy: z.string(), durationSec: z.number(), intensityBefore: z.number().nullable(), ratings: z.array(z.object({ atSec: z.number(), intensity: z.number() })), intensityAfter: z.number().nullable(), trigger: z.string().nullable(), outcome: z.enum(['resisted', 'slipped', 'abandoned']) }),
   z.object({ ...base, type: z.literal('diary'), mood: z.number(), anxiety: z.number(), irritability: z.number(), energy: z.number(), sleep: z.number(), focus: z.number(), craving: z.number(), activity: z.boolean(), symptoms: z.array(z.string()), text: z.string() }),
-  z.object({ ...base, type: z.literal('slip'), product: z.string(), hadNicotine: z.boolean(), units: z.number(), trigger: z.string().nullable(), feeling: z.string().nullable(), note: z.string(), lesson: z.string() }),
+  z.object({ ...base, type: z.literal('slip'), product: z.string(), hadNicotine: z.boolean(), units: z.number(), untilAt: z.number().nullable().optional(), trigger: z.string().nullable(), feeling: z.string().nullable(), note: z.string(), lesson: z.string() }),
   z.object({ ...base, type: z.literal('relapse'), products: z.array(z.string()), hadNicotine: z.boolean(), note: z.string() }),
   z.object({ ...base, type: z.literal('quit_marker_reset'), newQuitAt: z.number(), newNicotineFreeAt: z.number().nullable(), reason: z.string() }),
   z.object({ ...base, type: z.literal('nrt_ended'), nicotineFreeAt: z.number() }),

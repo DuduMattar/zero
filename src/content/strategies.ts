@@ -13,7 +13,7 @@ export const STRATEGIES: readonly Strategy[] = [
     id: 'breathing',
     label: 'Respiração guiada',
     short: 'Respirar',
-    steps: ['Inspire pelo nariz contando até 4.', 'Segure contando até 4.', 'Solte pela boca contando até 6.', 'Repita até o tempo acabar.'],
+    steps: ['Inspire pelo nariz contando até 4.', 'Segure contando até 4.', 'Solte pela boca contando até 6.', 'Se der tontura, respire no seu ritmo, sem segurar.'],
     guided: 'breathing',
     defaultSec: 180,
   },

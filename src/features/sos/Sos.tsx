@@ -100,7 +100,7 @@ export function Sos() {
               </Chip>
             ))}
           </div>
-          {best ? <div className="text-[11px] text-ink-3">★ Nos seus registros, esta teve a maior queda média de intensidade (n = {best.n}).</div> : null}
+          {best ? <div className="text-[11px] text-ink-3">★ Nos seus registros, esta esteve associada à maior queda média de intensidade (n = {best.n}). Não é garantia.</div> : null}
 
           {rateOpen ? (
             <div className="card p-3">

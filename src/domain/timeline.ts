@@ -36,4 +36,5 @@ export function timelinePosition(currentMs: number): { reached: TimelineEntry[];
   return { reached, current, next, progress01 };
 }
 
-export const EVIDENCE_LABEL: Record<Evidence, string> = { forte: 'evidência forte', moderada: 'evidência moderada', limitada: 'evidência limitada' };
+/** O rótulo mede concordância entre as fontes oficiais abertas, não qualidade de evidência clínica. Critério em docs/FONTES.md. */
+export const EVIDENCE_LABEL: Record<Evidence, string> = { forte: 'fontes concordam', moderada: 'fontes divergem no prazo', limitada: 'fonte única' };

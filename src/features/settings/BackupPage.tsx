@@ -128,6 +128,7 @@ export function BackupPage() {
       <Card tone="accent" className="space-y-2">
         <Label>Backup externo (o que protege de verdade)</Label>
         <div className="text-[13px] text-ink-2">Gera um arquivo JSON com tudo. No iPhone, escolha <b className="text-ink">Salvar em Arquivos → iCloud Drive</b>. Último: {settings.lastExternalBackupAt ? formatDateTime(settings.lastExternalBackupAt, profile.tz) : 'nunca'} · {events.length} eventos.</div>
+        <div className="text-[12px] text-warn">O arquivo é legível por qualquer pessoa que o abrir: contém seu diário, lapsos e gatilhos. Guarde em lugar protegido. O checksum garante integridade, não sigilo.</div>
         <Button variant="primary" full size="lg" onClick={exportNow} disabled={busy} data-testid="backup-export">
           Exportar agora
         </Button>
@@ -172,7 +173,7 @@ export function BackupPage() {
       <Card className="space-y-2">
         <Label>Snapshots locais ({snaps.length})</Label>
         <div className="text-[12px] text-ink-2">
-          Cópias guardadas <b className="text-ink">dentro do mesmo navegador</b>: servem para desfazer um erro (importação, exclusão), <b className="text-ink">não</b> protegem se o iOS apagar os dados do site. Automático 1×/dia (mantém 7) e antes de toda importação.
+          <b className="text-ink">Cópia local</b> = guardada dentro do mesmo navegador: serve para desfazer um erro (importação, exclusão). <b className="text-ink">Não</b> protege se o iOS apagar os dados do site nem se você perder o aparelho; para isso só o <b className="text-ink">backup externo</b> acima. Automático 1×/dia (mantém 7) e antes de toda importação.
         </div>
         <Button onClick={() => createSnapshot('manual', Date.now()).then(() => toast('Snapshot criado.'))} disabled={busy}>
           Criar snapshot manual

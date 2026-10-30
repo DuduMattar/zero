@@ -40,7 +40,7 @@ export function Dashboard() {
   const relapsing = main.state === 'relapse';
   const day = programDay(profile.quitAt, now, profile.tz);
   const msg = messageForDay(day);
-  const tl = timelinePosition(main.currentMs);
+  const tl = timelinePosition(main.runMs); // relógio de saúde: lapsos isolados não zeram
   const todayKey = formatDate(now, profile.tz);
   const diaryToday = events.find((e) => e.type === 'diary' && formatDate(e.at, profile.tz) === todayKey);
   const resisted = events.filter((e) => e.type === 'craving' && e.outcome === 'resisted').length;
@@ -88,9 +88,12 @@ export function Dashboard() {
               <div className="tabular sensitive text-[1.35rem] font-semibold leading-tight">{humanDuration(Math.max(main.bestMs, bestFromHistory))}</div>
             </div>
           </div>
-          <div className="mt-5 flex items-center justify-between border-t border-line pt-4 text-[0.9rem] text-ink-2">
-            <span>Sequência atual: <b className="sensitive text-ink">{humanDuration(main.currentMs)}</b></span>
-            <span className="text-ink-3">desde {main.currentStartAt ? formatDate(main.currentStartAt, profile.tz) : '—'}</span>
+          <div className="mt-5 flex items-end justify-between border-t border-line pt-4">
+            <div>
+              <Label>Desde o último consumo</Label>
+              <div className="tabular sensitive text-[1.5rem] font-semibold leading-tight">{humanDuration(main.currentMs)}</div>
+            </div>
+            <span className="pb-1 text-[0.85rem] text-ink-3">desde {main.currentStartAt ? formatDate(main.currentStartAt, profile.tz) : '—'}</span>
           </div>
         </Card>
       )}
@@ -114,7 +117,7 @@ export function Dashboard() {
               <div>
                 <div className="mb-1.5 flex justify-between text-[0.8rem] text-ink-3">
                   <span>Próximo: {tl.next.whenLabel}</span>
-                  <span>em {humanDuration(tl.next.whenHours * 3_600_000 - main.currentMs)}</span>
+                  <span>em {humanDuration(tl.next.whenHours * 3_600_000 - main.runMs)}</span>
                 </div>
                 <Progress value01={tl.progress01} />
               </div>

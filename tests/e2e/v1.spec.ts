@@ -103,13 +103,16 @@ test.describe('ZERO V1', () => {
     await expect(page.getByTestId('total-days')).toHaveText('5');
     await page.getByRole('link', { name: /Registrar lapso/ }).click();
     await page.getByTestId('slip-units').fill('2');
+    await page.getByRole('button', { name: /Adicionar detalhes/ }).click();
     await page.getByRole('button', { name: 'Estresse' }).click();
     await page.getByTestId('slip-save').click();
     await expect(page.getByText('Um lapso não apaga o caminho.')).toBeVisible();
     await expect(page.getByText(/dias livres acumulados: 5/)).toBeVisible();
     await page.getByRole('button', { name: 'Voltar ao painel' }).click();
     await expect(page.getByTestId('total-days')).toHaveText('5');
-    await expect(page.getByText(/Sequência atual:/)).toContainText('0 min');
+    await expect(page.getByText('Desde o último consumo')).toBeVisible();
+    await expect(page.getByText('0 min', { exact: true }).first()).toBeVisible();
+    await expect(page.getByText(/não zera/)).toHaveCount(0); // já voltamos ao painel
     await page.getByRole('link', { name: 'Histórico' }).click();
     await expect(page.getByTestId('ev-slip')).toContainText('Lapso: 2 cigarros');
     await expect(page.getByText('· lapso')).toBeVisible();

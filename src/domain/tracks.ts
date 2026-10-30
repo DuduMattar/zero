@@ -19,6 +19,10 @@ export interface TrackResult {
   totalFreeMs: number;
   /** início do episódio aberto, se houver */
   currentStartAt: number | null;
+  /** início da "corrida" atual: primeiro episódio depois da última recaída/novo marco. Lapsos isolados não zeram. */
+  runStartAt: number | null;
+  /** ms desde runStartAt (relógio da linha do tempo de saúde) */
+  runMs: number;
   episodes: Episode[];
   slipCount: number;
   relapseCount: number;
@@ -72,6 +76,8 @@ function computeTrack(track: TrackId, profile: Profile, events: AppEvent[], now:
     bestMs: 0,
     totalFreeMs: 0,
     currentStartAt: null,
+    runStartAt: null,
+    runMs: 0,
     episodes: [],
     slipCount: 0,
     relapseCount: 0,
@@ -83,12 +89,14 @@ function computeTrack(track: TrackId, profile: Profile, events: AppEvent[], now:
   let state: TrackState = 'free';
   let slipCount = 0;
   let relapseCount = 0;
+  let runStart: number | null = null;
 
-  const openAt = (at: number) => {
+  const openAt = (at: number, newRun = true) => {
     const start = Math.min(at, now);
     open = { startAt: start, endAt: null, endedBy: null };
     episodes.push(open);
     state = 'free';
+    if (newRun || runStart == null) runStart = start;
   };
   const closeAt = (at: number, by: 'slip' | 'relapse') => {
     if (!open) return;
@@ -111,13 +119,16 @@ function computeTrack(track: TrackId, profile: Profile, events: AppEvent[], now:
       case 'slip': {
         if (!affectsTrack(track, e.product, e.hadNicotine)) break;
         if (state === 'nrt') break; // nicotina já em uso planejado; não há trilha para encerrar
-        slipCount += 1;
         if (state === 'free' && open && e.at >= (open as Episode).startAt) {
+          slipCount += 1;
           closeAt(e.at, 'slip');
-          openAt(e.at); // reinicia automaticamente no instante do lapso
+          // reinicia no fim do consumo (lapso que durou um tempo) ou no instante do lapso; não zera a "corrida"
+          const resume = e.untilAt != null && e.untilAt > e.at ? e.untilAt : e.at;
+          openAt(Math.min(resume, now), false);
         } else if (state === 'relapse') {
-          // lapso durante recaída: não muda o estado
+          slipCount += 1; // consumo durante recaída: registrado, sem mudar o estado
         }
+        // lapso antes do início da trilha: ignorado (não há sequência para encerrar)
         break;
       }
       case 'relapse': {
@@ -126,7 +137,10 @@ function computeTrack(track: TrackId, profile: Profile, events: AppEvent[], now:
         if (!affects) break;
         relapseCount += 1;
         if (state === 'free') closeAt(e.at, 'relapse');
-        if (state !== 'nrt') state = 'relapse';
+        if (state !== 'nrt') {
+          state = 'relapse';
+          runStart = null;
+        }
         break;
       }
       case 'quit_marker_reset': {
@@ -160,6 +174,7 @@ function computeTrack(track: TrackId, profile: Profile, events: AppEvent[], now:
     if (dur > best) best = dur;
   }
   const current = open ? Math.max(0, now - (open as Episode).startAt) : 0;
+  const runStartAt = open ? runStart : null;
 
   return {
     id: track,
@@ -168,6 +183,8 @@ function computeTrack(track: TrackId, profile: Profile, events: AppEvent[], now:
     bestMs: best,
     totalFreeMs: total,
     currentStartAt: open ? (open as Episode).startAt : null,
+    runStartAt,
+    runMs: runStartAt != null ? Math.max(0, now - runStartAt) : 0,
     episodes,
     slipCount,
     relapseCount,

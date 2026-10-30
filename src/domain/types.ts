@@ -118,6 +118,8 @@ export interface SlipEvent extends EventBase {
   product: ProductId;
   hadNicotine: boolean;
   units: number;
+  /** fim do consumo, quando o lapso durou um tempo (ex.: noite inteira). null = momento único */
+  untilAt?: number | null;
   trigger: string | null;
   feeling: string | null;
   note: string;

@@ -10,15 +10,25 @@ Verificação feita em 30/10/2026 abrindo as páginas oficiais. Texto do app em 
 - INCA, tratamento (seção "Benefícios"): https://www.gov.br/inca/pt-br/assuntos/gestor-e-profissional-de-saude/programa-nacional-de-controle-do-tabagismo/tratamento
 - OMS, vape: https://www.who.int/news-room/questions-and-answers/item/how-to-quit-e-cigarettes
 
+## Rótulo de cada marco (critério reproduzível)
+O app não avalia qualidade de evidência clínica; mede **concordância entre as fontes oficiais abertas**:
+- **fontes concordam**: dois ou mais órgãos citam o mesmo marco com o mesmo prazo (ex.: 48 h, NHS e INCA).
+- **fontes divergem no prazo**: órgãos citam o mesmo efeito com prazos ou números diferentes (ex.: 1 ano, NHS/INCA "metade" vs. CDC "cai bastante").
+- **fonte única**: só um órgão cita (ex.: 72 h, NHS; 5–10 anos, CDC).
+Marcos com faixa (5–10 anos, 10–15 anos) são exibidos como faixa, não como aniversário.
+
+## Relógio de saúde vs. sequência contínua
+A linha do tempo conta desde o último recomeço real (início ou novo marco após recaída). Um lapso isolado reinicia a sequência contínua, mas não zera a linha do tempo: as fontes descrevem recuperação ao longo de meses e anos, e um consumo isolado não anula isso. Uma recaída (retorno ao consumo regular) zera.
+
 ## Divergências e decisões
 | Marco | Divergência | Decisão no app |
 |---|---|---|
-| 20 min | CDC atual diz só "minutos"; NHS e INCA mantêm 20 min | Usar NHS/INCA, evidência **moderada** |
+| 20 min | CDC atual diz só "minutos"; NHS e INCA mantêm 20 min | Usar NHS/INCA; rótulo **fontes divergem no prazo** |
 | Nicotina zero | INCA: 2 h; CDC: 24 h | Marco de 24 h cita as duas; foco no pico de abstinência (NHS) |
-| 72 h | Só o NHS cita | Evidência **limitada** |
+| 72 h | Só o NHS cita | Rótulo **fonte única** |
 | Circulação | INCA 3 semanas; NHS 2–12 semanas | Marco em 3 semanas citando ambos |
 | Tosse/falta de ar | NHS 3–9 meses; CDC 1–12 meses | Marco em 9 meses com a faixa no texto |
-| 1 ano | NHS e INCA: "metade"; CDC abandonou a formulação | Citar NHS/INCA, evidência **moderada** |
+| 1 ano | NHS e INCA: "metade"; CDC abandonou a formulação | Citar NHS/INCA; rótulo **fontes divergem no prazo** |
 | AVC | CDC: 5–10 anos (não 2–5) | Incluído no marco de 5 anos |
 | 15 anos | INCA diz 10 anos | Texto cita a divergência |
 

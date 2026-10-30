@@ -123,7 +123,7 @@ export function Trends() {
         ) : (
           <p className="mt-2 text-[0.9rem] text-ink-3">Ainda sem registros de SOS.</p>
         )}
-        <div className="mt-2 text-[0.75rem] text-ink-3">Queda média de intensidade (0–10). Mostramos como "suficiente" só com {MIN_CRAVINGS_FOR_STRATEGY} ou mais medidas (· = poucas). Descreve seus registros; não prova causa.</div>
+        <div className="mt-2 text-[0.75rem] text-ink-3">Queda média de intensidade (0–10) associada a cada estratégia nos seus registros. Marcamos como "suficiente" só com {MIN_CRAVINGS_FOR_STRATEGY} ou mais medidas (· = poucas). É descritivo e exploratório: não prova que a estratégia causou a queda.</div>
       </Card>
 
       <Card className="p-6">

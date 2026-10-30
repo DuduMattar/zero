@@ -28,6 +28,12 @@ Convenções: domínio puro em `src/domain` com `now` explícito; eventos append
 Feito: sistema visual com respiro e Dynamic Type; 3 abas (Agora / Tendências / Histórico) + engrenagem; consumo na unidade da pessoa com prévia de custo e opção "não sei"; card "Seu corpo agora" + linha do tempo com fonte, rótulo de evidência e aviso para vape (fontes em docs/FONTES.md); mensagem do dia (−7 a 90, depois semanal); diário em 1 toque pelo humor; Tendências com gráficos (vontades, humor/sono, dinheiro com projeção, estratégias, gatilhos/horas, conquistas); calendário de 28 dias; conquistas por tempo e comportamento gravadas em silêncio quando atrasadas.
 Testes: 35 unitários, 7 ponta a ponta.
 
+## Estabilização após revisão externa (30/10/2026)
+
+Aplicado: relógio de saúde separado da sequência contínua (lapso isolado não zera a linha do tempo; recaída/novo marco zera); lapso com duração opcional ("até"); lapso antes do marco inicial ignorado; testes de invariantes (sem sobreposição, sem duração negativa, total ≤ decorrido, ordem de registro irrelevante, eventos futuros ignorados, NRT + cigarro); 17 mensagens reescritas sem certezas sem fonte e sem tom de culpa (inclusive a contradição dos "cílios"); rótulos da linha do tempo trocados por concordância entre fontes com critério em docs/FONTES.md; marcos de 5–10 e 10–15 anos como faixas; alerta de sintomas que pedem avaliação; pós-lapso com 3 campos obrigatórios e detalhes opcionais; aviso de que o backup JSON é legível.
+Recusado (decisão): manchete = tempo desde o último consumo (mantido acumulado + recorde, com sequência em destaque); onboarding de 3 telas; remover projeção de 5 anos.
+Testes: 43 unitários, 7 ponta a ponta.
+
 ## V2 — escopo acordado em 30/10/2026 (restante: entregas 2 e 3)
 
 ### Correções de experiência (pedidas pelo usuário)

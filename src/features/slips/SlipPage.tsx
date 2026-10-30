@@ -25,6 +25,9 @@ export function SlipPage() {
   const [hadNicotine, setHadNicotine] = useState(true);
   const [units, setUnits] = useState('1');
   const [when, setWhen] = useState(() => epochToLocalInput(Date.now(), Intl.DateTimeFormat().resolvedOptions().timeZone));
+  const [lasted, setLasted] = useState(false);
+  const [until, setUntil] = useState(() => epochToLocalInput(Date.now(), Intl.DateTimeFormat().resolvedOptions().timeZone));
+  const [details, setDetails] = useState(false);
   const [trigger, setTrigger] = useState<string | null>(null);
   const [feeling, setFeeling] = useState<string | null>(null);
   const [note, setNote] = useState('');
@@ -46,8 +49,11 @@ export function SlipPage() {
     const at = localInputToEpoch(when, profile.tz);
     if (at > Date.now() + 60_000) return toast('A data não pode ser no futuro.', 'err');
     const u = Math.max(0.1, Number(units.replace(',', '.')) || 1);
+    const untilAt = lasted ? localInputToEpoch(until, profile.tz) : null;
+    if (untilAt != null && untilAt <= at) return toast('O fim precisa ser depois do início.', 'err');
+    if (untilAt != null && untilAt > Date.now() + 60_000) return toast('O fim não pode ser no futuro.', 'err');
     try {
-      await addEvent({ ...stamp(Date.now(), profile.tz), type: 'slip', at, product, hadNicotine, units: u, trigger, feeling, note: note.trim(), lesson: lesson.trim() });
+      await addEvent({ ...stamp(Date.now(), profile.tz), type: 'slip', at, product, hadNicotine, units: u, untilAt, trigger, feeling, note: note.trim(), lesson: lesson.trim() });
       setDone('slip');
     } catch (e) {
       console.error(e);
@@ -86,7 +92,7 @@ export function SlipPage() {
           <div className="text-[14px] text-ink-2">
             Seus dias livres acumulados: <b className="tabular text-ink">{wholeDays(main.totalFreeMs)}</b>. Recorde: <b className="text-ink">{humanDuration(main.bestMs)}</b>. Nada disso foi perdido.
           </div>
-          <div className="text-[13px] text-ink-3">A sequência atual recomeça a partir do lapso. É só o cronômetro; o histórico continua inteiro.</div>
+          <div className="text-[13px] text-ink-3">A sequência contínua recomeça a partir do lapso. A linha do tempo de saúde não zera: um consumo isolado não apaga a recuperação acumulada. Só uma recaída, com novo marco, reinicia a contagem de saúde.</div>
         </Card>
         <Card className="space-y-2">
           <Label>Próxima hora</Label>
@@ -166,10 +172,23 @@ export function SlipPage() {
             <Field label={`Quantidade (${productById(product).unitLabelPlural})`}>
               <input className={inputCls} inputMode="decimal" value={units} onChange={(e) => setUnits(e.target.value)} data-testid="slip-units" />
             </Field>
-            <Field label="Quando">
+            <Field label={lasted ? 'Começou em' : 'Quando'}>
               <input type="datetime-local" className={inputCls} value={when} onChange={(e) => setWhen(e.target.value)} />
             </Field>
           </div>
+          <Chip active={lasted} onClick={() => setLasted((v) => !v)}>{lasted ? '✓ ' : ''}Durou um tempo (ex.: a noite inteira)</Chip>
+          {lasted ? (
+            <Field label="Terminou em" hint="As horas entre o início e o fim não contam como livres.">
+              <input type="datetime-local" className={inputCls} value={until} onChange={(e) => setUntil(e.target.value)} />
+            </Field>
+          ) : null}
+          <Button variant="primary" size="lg" full onClick={saveSlip} data-testid="slip-save">
+            Registrar lapso
+          </Button>
+          <button type="button" className="w-full text-center text-[0.9rem] font-semibold text-ink-3" onClick={() => setDetails((v) => !v)}>
+            {details ? 'Esconder detalhes' : 'Adicionar detalhes (opcional): gatilho, como estava, o que aprendeu'}
+          </button>
+          <div className={details ? 'space-y-4' : 'hidden'}>
           <div>
             <Label className="mb-2">Gatilho</Label>
             <div className="flex flex-wrap gap-2">
@@ -196,9 +215,10 @@ export function SlipPage() {
           <Field label="O que pode ser diferente da próxima vez? (opcional)">
             <textarea className={`${inputCls} min-h-20`} value={lesson} onChange={(e) => setLesson(e.target.value)} />
           </Field>
-          <Button variant="primary" size="lg" full onClick={saveSlip} data-testid="slip-save">
-            Registrar lapso
+          <Button variant="primary" size="lg" full onClick={saveSlip}>
+            Registrar lapso com detalhes
           </Button>
+          </div>
         </div>
       ) : null}
 

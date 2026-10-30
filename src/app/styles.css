@@ -1,0 +1,128 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --color-bg: var(--c-bg);
+  --color-bg-2: var(--c-bg-2);
+  --color-card: var(--c-card);
+  --color-card-2: var(--c-card-2);
+  --color-line: var(--c-line);
+  --color-ink: var(--c-ink);
+  --color-ink-2: var(--c-ink-2);
+  --color-ink-3: var(--c-ink-3);
+  --color-accent: var(--c-accent);
+  --color-accent-ink: var(--c-accent-ink);
+  --color-warn: var(--c-warn);
+  --color-danger: var(--c-danger);
+  --color-calm: var(--c-calm);
+  --radius-xl2: 22px;
+}
+
+:root {
+  color-scheme: light;
+  --c-bg: #f6f7f9;
+  --c-bg-2: #eef0f3;
+  --c-card: #ffffff;
+  --c-card-2: #f3f5f8;
+  --c-line: #e3e6ea;
+  --c-ink: #0e1217;
+  --c-ink-2: #4b5563;
+  --c-ink-3: #8b94a1;
+  --c-accent: #0f9d6e;
+  --c-accent-ink: #ffffff;
+  --c-warn: #b7791f;
+  --c-danger: #c53d3d;
+  --c-calm: #2f6fdb;
+}
+.dark {
+  color-scheme: dark;
+  --c-bg: #0b0f14;
+  --c-bg-2: #0f141b;
+  --c-card: #141a22;
+  --c-card-2: #1a222c;
+  --c-line: #232c37;
+  --c-ink: #eef2f6;
+  --c-ink-2: #aab4c0;
+  --c-ink-3: #6f7a87;
+  --c-accent: #2fd38a;
+  --c-accent-ink: #052416;
+  --c-warn: #e4b35a;
+  --c-danger: #f06b6b;
+  --c-calm: #6ea3ff;
+}
+
+html,
+body {
+  background: var(--c-bg);
+  color: var(--c-ink);
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+body {
+  font-family: var(--font-sans);
+  font-feature-settings: 'cv11', 'ss01', 'tnum';
+  min-height: 100dvh;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+input,
+select,
+textarea {
+  font-size: 16px; /* evita zoom no iOS */
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+.card {
+  background: var(--c-card);
+  border: 1px solid var(--c-line);
+  border-radius: 22px;
+}
+.press {
+  transition: transform 120ms ease, opacity 120ms ease;
+}
+.press:active {
+  transform: scale(0.98);
+}
+
+/* Respiração guiada: só anima sem "reduzir movimento" */
+@keyframes breathe {
+  0% { transform: scale(0.72); }
+  28.5% { transform: scale(1); }
+  57% { transform: scale(1); }
+  100% { transform: scale(0.72); }
+}
+.breathe {
+  animation: breathe 14s ease-in-out infinite;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.fade-up {
+  animation: fadeUp 260ms ease both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .breathe, .fade-up { animation: none !important; }
+  .press { transition: none; }
+}
+.motion-off .breathe,
+.motion-off .fade-up {
+  animation: none !important;
+}

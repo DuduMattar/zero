@@ -23,7 +23,12 @@ Ordem sugerida para a V2 (ver docs/BENCHMARKING.md, seção 10):
 
 Convenções: domínio puro em `src/domain` com `now` explícito; eventos append-only; nunca gravar contadores; todo texto em pt-BR; nenhum serviço pago.
 
-## V2 — escopo acordado em 30/10/2026
+## V2 — entrega 1 publicada em 30/10/2026
+
+Feito: sistema visual com respiro e Dynamic Type; 3 abas (Agora / Tendências / Histórico) + engrenagem; consumo na unidade da pessoa com prévia de custo e opção "não sei"; card "Seu corpo agora" + linha do tempo com fonte, rótulo de evidência e aviso para vape (fontes em docs/FONTES.md); mensagem do dia (−7 a 90, depois semanal); diário em 1 toque pelo humor; Tendências com gráficos (vontades, humor/sono, dinheiro com projeção, estratégias, gatilhos/horas, conquistas); calendário de 28 dias; conquistas por tempo e comportamento gravadas em silêncio quando atrasadas.
+Testes: 35 unitários, 7 ponta a ponta.
+
+## V2 — escopo acordado em 30/10/2026 (restante: entregas 2 e 3)
 
 ### Correções de experiência (pedidas pelo usuário)
 1. **Consumo sem conta de cabeça.** Pergunta por produto, na unidade em que a pessoa pensa: pod → "um pod dura quantos dias?" ou "quantos pods por semana?"; cigarro → "maços por dia" ou "cigarros por dia"; tabaco enrolado → "pacotes por semana"; sachê → "latas por semana". Chips com valores típicos (ex.: 1 pod a cada 3 dias) e campo livre. Preço na mesma unidade (preço do pod, do maço, do pacote). O app converte para unidades/dia e mostra na hora: "≈ R$ 180 por mês". Opção "não sei" que desliga o dinheiro sem travar o onboarding. Mesmo componente em Ajustes.

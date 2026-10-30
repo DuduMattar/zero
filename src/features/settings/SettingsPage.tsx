@@ -5,8 +5,9 @@ import { isStandalone } from '../../app/hooks/useNow';
 import { useBoot } from '../../app/providers';
 import { addEvent, saveProfile, stamp, storageEstimate, updateSettings, wipeAll } from '../../data/repos';
 import { epochToLocalInput, formatDateTime, localInputToEpoch } from '../../domain/format';
-import { productById } from '../../domain/types';
 import { Button, Card, Field, Label, Segmented, inputCls, useConfirm, useToast } from '../../ui';
+import { ConsumoInput } from '../../ui/ConsumoInput';
+import { fromConsumption, toConsumption, type ConsumptionInput } from '../../domain/consumption';
 
 export function SettingsPage() {
   const data = useData(60_000);
@@ -15,8 +16,8 @@ export function SettingsPage() {
   const confirm = useConfirm(5000);
   const nav = useNavigate();
   const [est, setEst] = useState<{ usage: number; quota: number } | null>(null);
-  const [unitsPerDay, setUnitsPerDay] = useState('');
-  const [pricePerUnit, setPricePerUnit] = useState('');
+  const [cons, setCons] = useState<ConsumptionInput>({ product: 'cigarette', amount: 0, packPrice: 0 });
+  const [consSkip, setConsSkip] = useState(false);
   const [quitAt, setQuitAt] = useState('');
   const [reasons, setReasons] = useState('');
   const [nrtEnd, setNrtEnd] = useState(() => epochToLocalInput(Date.now(), Intl.DateTimeFormat().resolvedOptions().timeZone));
@@ -26,8 +27,8 @@ export function SettingsPage() {
   }, []);
   useEffect(() => {
     if (!data) return;
-    setUnitsPerDay(String(data.profile.consumption.unitsPerDay));
-    setPricePerUnit(data.profile.consumption.pricePerUnit.toFixed(2));
+    setCons(fromConsumption(data.profile.consumption));
+    setConsSkip(data.profile.consumption.unitsPerDay === 0);
     setQuitAt(epochToLocalInput(data.profile.quitAt, data.profile.tz));
     setReasons(data.profile.reasons.join('\n'));
   }, [data?.profile.updatedAt, data?.profile, data]);
@@ -37,10 +38,10 @@ export function SettingsPage() {
   const persistText = { pending: 'verificando…', granted: 'concedido pelo navegador', denied: 'negado pelo navegador', unsupported: 'não suportado' }[boot.persist];
 
   async function savePrice() {
-    const u = Number(unitsPerDay.replace(',', '.'));
-    const p = Number(pricePerUnit.replace(',', '.'));
-    if (!(u >= 0) || !(p >= 0)) return toast('Valores inválidos.', 'err');
-    await addEvent({ ...stamp(Date.now(), profile.tz), type: 'price_change', at: Date.now(), unitsPerDay: u, pricePerUnit: p, effectiveFrom: Date.now() });
+    const c = consSkip ? { product: cons.product, unitsPerDay: 0, pricePerUnit: 0 } : toConsumption(cons);
+    if (!c) return toast('Preencha a quantidade.', 'err');
+    await addEvent({ ...stamp(Date.now(), profile.tz), type: 'price_change', at: Date.now(), unitsPerDay: c.unitsPerDay, pricePerUnit: c.pricePerUnit, effectiveFrom: Date.now() });
+    if (c.product !== profile.consumption.product) await saveProfile({ ...profile, consumption: { ...profile.consumption, product: c.product }, updatedAt: Date.now() });
     toast('Consumo e preço atualizados a partir de agora.');
   }
   async function saveQuitAt() {
@@ -102,18 +103,11 @@ export function SettingsPage() {
         )}
       </Card>
 
-      <Card className="space-y-3">
+      <Card className="space-y-4 p-6">
         <Label>Consumo e preço</Label>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label={`${productById(profile.consumption.product).unitLabelPlural}/dia`}>
-            <input className={inputCls} inputMode="decimal" value={unitsPerDay} onChange={(e) => setUnitsPerDay(e.target.value)} />
-          </Field>
-          <Field label="Preço por unidade (R$)">
-            <input className={inputCls} inputMode="decimal" value={pricePerUnit} onChange={(e) => setPricePerUnit(e.target.value)} />
-          </Field>
-        </div>
+        <ConsumoInput products={profile.products} value={cons} onChange={setCons} skipped={consSkip} onSkip={setConsSkip} />
         <Button onClick={savePrice}>Aplicar a partir de agora</Button>
-        <div className="text-[12px] text-ink-3">Mudanças valem daqui para a frente; o passado mantém o valor antigo.</div>
+        <div className="text-[0.8rem] text-ink-3">Mudanças valem daqui para a frente; o passado mantém o valor antigo.</div>
       </Card>
 
       <Card className="space-y-3">

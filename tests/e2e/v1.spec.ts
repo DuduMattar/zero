@@ -14,9 +14,10 @@ async function onboard(page: Page, quitDaysAgo = 3) {
   await expect(page).toHaveURL(/onboarding/);
   await page.getByTestId('onb-next').click(); // 0 → 1 produtos
   await page.getByRole('button', { name: 'Vape / pod' }).click();
-  await page.getByTestId('onb-next').click(); // 2 consumo
-  await page.getByPlaceholder('ex.: 10').fill('10');
-  await page.getByPlaceholder('ex.: 12,50').fill('10');
+  await page.getByTestId('onb-next').click(); // 2 consumo (chips)
+  await page.getByRole('button', { name: '20 (1 maço)' }).click();
+  await page.getByTestId('cons-price').fill('12');
+  await expect(page.getByText('por mês')).toBeVisible();
   await page.getByTestId('onb-next').click(); // 3 história
   await page.getByTestId('onb-next').click(); // 4 gatilhos
   await page.getByRole('button', { name: 'Café' }).click();
@@ -28,7 +29,7 @@ async function onboard(page: Page, quitDaysAgo = 3) {
   await page.getByTestId('onb-next').click(); // 8 metas
   await page.getByTestId('onb-next').click(); // 9 resumo
   await page.getByTestId('onb-next').click(); // concluir
-  await expect(page.getByRole('heading', { name: 'Agora' })).toBeVisible();
+  await expect(page.getByTestId('sos')).toBeVisible();
 }
 
 async function readEvents(page: Page): Promise<Array<Record<string, unknown>>> {
@@ -53,7 +54,7 @@ test.describe('ZERO V1', () => {
     await onboard(page, 3);
     await expect(page.getByTestId('total-days')).toHaveText('3');
     await page.reload();
-    await expect(page.getByRole('heading', { name: 'Agora' })).toBeVisible();
+    await expect(page.getByTestId('sos')).toBeVisible();
     await expect(page.getByTestId('total-days')).toHaveText('3');
     await expect(page.getByText('Sem vape')).toBeVisible();
     await expect(page.getByText('Sem cigarro')).toBeVisible();
@@ -71,7 +72,7 @@ test.describe('ZERO V1', () => {
     await page.getByRole('radio', { name: '2' }).click();
     await page.getByRole('button', { name: 'Café' }).click();
     await page.getByTestId('sos-save-resisted').click();
-    await expect(page.getByRole('heading', { name: 'Agora' })).toBeVisible();
+    await expect(page.getByTestId('sos')).toBeVisible();
     const ev = await readEvents(page);
     const c = ev.find((e) => e.type === 'craving') as Record<string, unknown>;
     expect(c).toBeTruthy();
@@ -86,21 +87,21 @@ test.describe('ZERO V1', () => {
   test('diário em menos de 60 s e visível no painel', async ({ page }) => {
     await onboard(page);
     const t0 = Date.now();
-    await page.getByRole('link', { name: 'Diário' }).click();
-    await page.getByRole('radiogroup', { name: 'Humor' }).getByRole('radio', { name: '4' }).click();
+    await page.getByRole('button', { name: 'Humor bem' }).click();
+    await expect(page.getByRole('radiogroup', { name: 'Humor' }).getByRole('radio', { name: '4' })).toHaveAttribute('aria-checked', 'true');
     await page.getByRole('radiogroup', { name: 'Sono (noite passada)' }).getByRole('radio', { name: '5' }).click();
     await page.getByRole('button', { name: 'Insônia' }).click();
     await page.getByTestId('diary-text').fill('Dia tranquilo.');
     await page.getByTestId('diary-save').click();
-    await expect(page.getByRole('heading', { name: 'Agora' })).toBeVisible();
+    await expect(page.getByTestId('sos')).toBeVisible();
     expect(Date.now() - t0).toBeLessThan(60_000);
-    await expect(page.getByText('4.0 · 5.0')).toBeVisible();
+    await expect(page.getByText('Registrado: humor 4/5 · sono 5/5')).toBeVisible();
   });
 
   test('lapso: fluxo protetor, histórico preservado, dias acumulados não zeram', async ({ page }) => {
     await onboard(page, 5);
     await expect(page.getByTestId('total-days')).toHaveText('5');
-    await page.getByRole('button', { name: 'Registrar lapso' }).click();
+    await page.getByRole('link', { name: /Registrar lapso/ }).click();
     await page.getByTestId('slip-units').fill('2');
     await page.getByRole('button', { name: 'Estresse' }).click();
     await page.getByTestId('slip-save').click();
@@ -141,7 +142,7 @@ test.describe('ZERO V1', () => {
     await page.getByTestId('backup-file').setInputFiles(path);
     await expect(page.getByTestId('import-preview')).toContainText('0 novos');
     await page.getByTestId('import-merge').click();
-    await expect(page.getByRole('heading', { name: 'Agora' })).toBeVisible();
+    await expect(page.getByTestId('sos')).toBeVisible();
   });
 
   test('tema escuro e movimento reduzido', async ({ page }) => {
@@ -152,5 +153,24 @@ test.describe('ZERO V1', () => {
     const anim = await page.locator('.breathe').evaluate((el) => getComputedStyle(el).animationName);
     expect(anim).toBe('none');
     await expect(page.locator('[aria-live=polite]')).toContainText(/Inspire|Segure|Solte/);
+  });
+
+  test('V2: consumo fácil, linha do tempo com fontes e tendências', async ({ page }) => {
+    await onboard(page, 2);
+    // estimativa de dinheiro: 20 cigarros/dia a R$12 o maço = R$12/dia
+    await page.getByRole('link', { name: 'Tendências' }).click();
+    await expect(page.getByText('R$ 12,00/dia')).toBeVisible();
+    await expect(page.getByText('Conquistas')).toBeVisible();
+    await expect(page.getByText('✓ 24 horas')).toBeVisible();
+    // linha do tempo
+    await page.getByRole('link', { name: 'Histórico' }).click();
+    await page.getByRole('link', { name: /Linha do tempo da recuperação/ }).click();
+    await expect(page.getByText('✓ alcançado').first()).toBeVisible();
+    await expect(page.getByRole('link', { name: 'NHS · INCA' }).first()).toHaveAttribute('href', /nhs\.uk|gov\.br/);
+    // card do dia no painel
+    await page.getByRole('link', { name: 'Agora' }).click();
+    await expect(page.getByText('Seu corpo agora')).toBeVisible();
+    await expect(page.getByText('Mensagem do dia')).toBeVisible();
+    await expect(page.getByText('Olfato e paladar melhoram')).toBeVisible();
   });
 });

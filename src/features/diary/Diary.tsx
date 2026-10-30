@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useData } from '../../app/hooks/useData';
 import { addEvent, stamp } from '../../data/repos';
 import { formatDate } from '../../domain/format';
@@ -19,8 +19,9 @@ const SCALES: { key: 'mood' | 'anxiety' | 'irritability' | 'energy' | 'sleep' | 
 export function Diary() {
   const data = useData(60_000);
   const nav = useNavigate();
+  const [sp] = useSearchParams();
   const toast = useToast();
-  const [v, setV] = useState<Record<string, number | null>>({ mood: null, anxiety: null, irritability: null, energy: null, sleep: null, focus: null, craving: null });
+  const [v, setV] = useState<Record<string, number | null>>({ mood: sp.get('mood') ? Number(sp.get('mood')) : null, anxiety: null, irritability: null, energy: null, sleep: null, focus: null, craving: null });
   const [activity, setActivity] = useState(false);
   const [symptoms, setSymptoms] = useState<string[]>([]);
   const [text, setText] = useState('');

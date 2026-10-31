@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useData } from '../../app/hooks/useData';
 import { isStandalone } from '../../app/hooks/useNow';
 import { useBoot } from '../../app/providers';
+import { BUILD_ID, checkForUpdate } from '../../app/sw';
 import { addEvent, saveProfile, stamp, storageEstimate, updateSettings, wipeAll } from '../../data/repos';
 import { epochToLocalInput, formatDateTime, localInputToEpoch } from '../../domain/format';
 import { Button, Card, Field, Label, Segmented, inputCls, useConfirm, useToast } from '../../ui';
@@ -61,6 +62,18 @@ export function SettingsPage() {
     await saveProfile({ ...profile, nicotineFreeAt: profile.nicotineFreeAt ?? at, updatedAt: Date.now() });
     toast('Contador sem nicotina iniciado.');
   }
+  async function update() {
+    toast('Verificando…');
+    try {
+      const r = await checkForUpdate();
+      if (r === 'unsupported') toast('Este navegador não usa service worker.', 'err');
+      else if (r) toast('Versão nova encontrada. O app vai recarregar.');
+      else toast('Você já está na versão mais recente.');
+    } catch {
+      toast('Não consegui verificar agora (sem rede?).', 'err');
+    }
+  }
+
   async function wipe() {
     if (!confirm.confirm('wipe')) return;
     await wipeAll();
@@ -180,6 +193,10 @@ export function SettingsPage() {
           <li>• O app não diagnostica, não prescreve e não substitui profissional de saúde. Falta de ar intensa, dor no peito ou desmaio: procure atendimento (SAMU 192).</li>
           <li>• Tratamento gratuito no SUS: UBS ou Disque Saúde 136.</li>
         </ul>
+        <div className="flex items-center justify-between gap-3 border-t border-line pt-3">
+          <div className="text-[13px] text-ink-3">Versão <span className="tabular" data-testid="build-id">{BUILD_ID}</span></div>
+          <Button size="sm" onClick={update}>Buscar atualização</Button>
+        </div>
       </Card>
 
       <Card tone="danger" className="space-y-2">

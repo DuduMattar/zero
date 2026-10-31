@@ -5,9 +5,13 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 // VITE_BASE=/zero/ no deploy do GitHub Pages; "/" em desenvolvimento.
 const base = process.env.VITE_BASE ?? '/';
+// Identificador do build, visível em Ajustes → Sobre, para saber qual versão está rodando no aparelho.
+const sha = (process.env.GITHUB_SHA ?? 'local').slice(0, 7);
+const buildId = `${new Date().toLocaleString('sv-SE', { timeZone: 'America/Sao_Paulo' }).slice(0, 16)} · ${sha}`;
 
 export default defineConfig({
   base,
+  define: { __BUILD_ID__: JSON.stringify(buildId) },
   plugins: [
     react(),
     tailwindcss(),

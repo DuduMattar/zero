@@ -92,11 +92,13 @@ export interface CravingEvent extends EventBase {
   type: 'craving';
   strategy: string;
   durationSec: number;
-  intensityBefore: number | null;
+  intensityBefore: number | null; // só conta como linha de base se avaliada nos primeiros segundos (ver craving.ts)
+  intensityBeforeAtSec?: number | null;
   ratings: CravingRating[];
   intensityAfter: number | null;
   trigger: string | null;
-  outcome: 'resisted' | 'slipped' | 'abandoned';
+  /** resisted: diminuiu · continued: saiu com a vontade ainda presente · slipped: houve uso · abandoned: fechou sem responder (dados antigos) */
+  outcome: 'resisted' | 'slipped' | 'continued' | 'abandoned';
 }
 
 export interface DiaryEvent extends EventBase {

@@ -25,7 +25,7 @@ export function PlanCard({ day, events, tz, now }: { day: number; events: AppEve
   return (
     <Card className="space-y-2 p-6" data-testid="plan-card">
       <div className="flex items-center justify-between">
-        <Label>Plano de hoje</Label>
+        <Label>Uma ação para hoje</Label>
         <span className="text-[0.75rem] text-ink-3">{PHASE_LABEL[phaseOf(day)].split(' · ')[0]}{a.minutes ? ` · ${a.minutes} min` : ''}</span>
       </div>
       <div className="text-[1.15rem] font-semibold leading-snug">{a.title}</div>

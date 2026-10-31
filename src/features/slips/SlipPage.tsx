@@ -87,12 +87,12 @@ export function SlipPage() {
     return (
       <div className="space-y-3 pt-2">
         <Label>Registrado</Label>
-        <h1 className="text-2xl font-bold">Um lapso não apaga o caminho.</h1>
+        <h1 className="text-2xl font-bold">Uso registrado. O histórico permanece.</h1>
         <Card className="space-y-1">
           <div className="text-[14px] text-ink-2">
-            Seus dias livres acumulados: <b className="tabular text-ink">{wholeDays(main.totalFreeMs)}</b>. Recorde: <b className="text-ink">{humanDuration(main.bestMs)}</b>. Nada disso foi perdido.
+            Dias somados: <b className="tabular text-ink">{wholeDays(main.totalFreeMs)}</b>. Maior período contínuo: <b className="text-ink">{humanDuration(main.bestMs)}</b>. Nada disso foi perdido.
           </div>
-          <div className="text-[13px] text-ink-3">A sequência contínua recomeça a partir do lapso. A linha do tempo de saúde não zera: um consumo isolado não apaga a recuperação acumulada. Só uma recaída, com novo marco, reinicia a contagem de saúde.</div>
+          <div className="text-[13px] text-ink-3">A sequência contínua recomeçou a partir deste uso. Isso não significa que todos os benefícios anteriores desapareceram. A referência de recuperação segue contando desde o início desta tentativa; só uma recaída, com novo marco, a reinicia.</div>
         </Card>
         <Card className="space-y-2">
           <Label>Próxima hora</Label>

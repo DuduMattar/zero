@@ -39,6 +39,20 @@ Testes: 43 unitários, 7 ponta a ponta.
 Feito: plano de 90 dias (uma atividade por dia, −7 a 90, marcável; evento `activity_done`); revisão semanal descritiva (esta semana vs anterior; card no painel aos domingos e sempre em Tendências); objetivos para o dinheiro com progresso pela economia líquida; compartilhar progresso como imagem gerada no aparelho; "Ler meus motivos" dentro do SOS; modo discreto (ícone no painel + Ajustes); perfil editável (produtos, gatilhos, motivos, metas/plano de emergência, história); registro de doses de reposição de nicotina com orientação SUS; exportar CSV; Tendências carregada sob demanda (chunk separado).
 Testes: 47 unitários, 8 ponta a ponta.
 
+## V3 — entrega 1 (SOS e linguagem) publicada em 31/10/2026
+
+Origem: revisão externa (GPT) sobre identidade e linguagem; triagem em `docs/BRIEF-GPT-DESIGN.md`.
+Feito:
+- SOS com três saídas: **Diminuiu / Continua / Usei**. "Continua" permite trocar estratégia ou ler motivos e seguir no mesmo episódio, ou sair guardando o registro (`outcome: 'continued'`). "Usei" não tem estilo de perigo.
+- Linha de base honesta: a vontade só conta como "antes" se avaliada nos primeiros 20 s (`BASELINE_WINDOW_SEC`); fora disso vira avaliação intermediária. `cravingDrop` só existe com linha de base real; episódios sem ela ficam registrados, mas fora da comparação de estratégias (`measured` separado de `n`).
+- Uma estratégia visível por vez, instrução maior que o cronômetro, "Trocar estratégia" em folha. Removida a frase "Vontade passa. Fica com ela."
+- Painel: número principal nomeado pelo produto ("dias sem cigarro / sem vape / sem tabaco ou vape, somados"), "Agora: há X desde o último uso", "Maior período contínuo".
+- "Seu corpo agora" → "Referência de recuperação": tempo desde o início da tentativa + "para quem parou de fumar, estudos descrevem"; marcos passados mostram "prazo passado", não "alcançado". Nota "média de estudos, não medição do seu corpo".
+- "Plano de hoje" → "Uma ação para hoje"; "Como foi hoje?"/"Diário" → "Como você está"; "Registrar lapso" → "Registrar um uso"; estratégias "Esperar antes de decidir", "Notar a vontade, sem agir", "Ler meus motivos".
+- Mensagens dos dias 1 (ciente de reposição de nicotina), 14, 30 e 60 reescritas sem estatística sem fonte. Texto pós-uso sem prometer relógio fisiológico.
+Testes: 49 unitários, 8 ponta a ponta (SOS: linha de base, continua + troca, sessão sem linha de base, uso pelo SOS com histórico preservado).
+Pendente (entrega 2 da V3): identidade visual (paleta, Manrope + Source Sans 3, hierarquia sem card por linha, ícone de olho no lugar do ◎, calendário com símbolo).
+
 ## V2 — restante (entrega 3)
 Relatório PDF via impressão, carta para o futuro, esportes (entrada manual), som opcional no SOS, "ver mensagens anteriores".
 

@@ -19,16 +19,16 @@ export const STRATEGIES: readonly Strategy[] = [
   },
   {
     id: 'delay',
-    label: 'Adiar 10 minutos',
-    short: 'Adiar',
+    label: 'Esperar antes de decidir',
+    short: 'Esperar',
     steps: ['Decida: "não agora, daqui a 10 minutos eu vejo".', 'Faça qualquer outra coisa enquanto o tempo passa.', 'Quando acabar, avalie de novo.'],
     guided: 'delay',
     defaultSec: 600,
   },
   {
     id: 'mindfulness',
-    label: 'Observar a vontade',
-    short: 'Observar',
+    label: 'Notar a vontade, sem agir',
+    short: 'Notar',
     steps: ['Onde a vontade está no corpo? Garganta, peito, mãos?', 'Observe sem lutar. Ela sobe, atinge um pico e desce.', 'Nomeie: "isso é uma vontade, não uma ordem".'],
     guided: 'mindfulness',
     defaultSec: 180,
@@ -36,7 +36,7 @@ export const STRATEGIES: readonly Strategy[] = [
   { id: 'water', label: 'Beber água', short: 'Água', steps: ['Encha um copo grande.', 'Beba devagar, goles pequenos.', 'Sinta a temperatura e o gosto.'], guided: 'none', defaultSec: 120 },
   { id: 'walk', label: 'Caminhada curta', short: 'Caminhar', steps: ['Levante e saia do lugar onde você está.', 'Caminhe por 5 minutos, ritmo confortável.', 'Preste atenção nos pés tocando o chão.'], guided: 'none', defaultSec: 300 },
   { id: 'environment', label: 'Mudar de ambiente', short: 'Mudar', steps: ['Saia do cômodo ou da situação.', 'Vá para um lugar onde você nunca fumou.', 'Fique lá até a vontade baixar.'], guided: 'none', defaultSec: 180 },
-  { id: 'reasons', label: 'Relembrar meus motivos', short: 'Motivos', steps: ['Leia seus motivos, um por um, devagar.', 'Escolha o mais forte hoje.', 'Diga em voz baixa por que ele importa.'], guided: 'none', defaultSec: 120 },
+  { id: 'reasons', label: 'Ler meus motivos', short: 'Motivos', steps: ['Leia seus motivos, um por um, devagar.', 'Escolha o mais forte hoje.', 'Diga em voz baixa por que ele importa.'], guided: 'none', defaultSec: 120 },
 ];
 
 export const strategyById = (id: string): Strategy => STRATEGIES.find((s) => s.id === id) ?? STRATEGIES[0];

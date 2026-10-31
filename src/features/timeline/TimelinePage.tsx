@@ -20,7 +20,7 @@ export function TimelinePage() {
       <header>
         <h1 className="text-[1.75rem] font-bold leading-tight">Linha do tempo da recuperação</h1>
         <p className="mt-1 text-ink-2">Marcos médios de estudos populacionais, com fonte. O ritmo varia com tempo e intensidade de uso e com a saúde de cada um. Não é previsão individual.</p>
-        {main.runStartAt ? <p className="mt-2 text-[0.85rem] text-ink-3">Contando desde {formatDate(main.runStartAt, profile.tz)}. Um lapso isolado reinicia a sequência contínua, mas não zera esta linha do tempo; uma recaída ou um novo marco, sim.</p> : null}
+        {main.runStartAt ? <p className="mt-2 text-[0.85rem] text-ink-3">Tempo contado desde o início desta tentativa, {formatDate(main.runStartAt, profile.tz)}. Os marcos são médias de estudos com quem parou de fumar cigarro; não medem o seu corpo. Um uso isolado reinicia a sequência contínua, mas não este relógio; uma recaída ou um novo marco, sim.</p> : null}
       </header>
       {vapeOnly ? (
         <Card tone="warn" className="p-5 text-[0.9rem] text-ink-2">
@@ -39,7 +39,7 @@ export function TimelinePage() {
               <Card className={`p-5 ${isCurrent ? 'border-accent/50' : ''} ${reached ? '' : 'opacity-75'}`}>
                 <div className="flex items-center justify-between gap-2">
                   <Label>{e.whenLabel}</Label>
-                  <span className="text-[0.7rem] text-ink-3">{reached ? '✓ alcançado' : main.currentStartAt ? `em ${humanDuration(remaining)}` : ''}</span>
+                  <span className="text-[0.7rem] text-ink-3">{reached ? 'prazo passado' : main.currentStartAt ? `em ${humanDuration(remaining)}` : ''}</span>
                 </div>
                 <div className="mt-1 text-[1.05rem] font-semibold leading-snug">{e.title}</div>
                 <p className="mt-1 text-[0.95rem] text-ink-2">{e.body}</p>

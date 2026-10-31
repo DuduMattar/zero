@@ -61,7 +61,7 @@ export function Diary() {
 
   return (
     <div className="space-y-4 pt-2">
-      <h1 className="text-2xl font-bold">Diário</h1>
+      <h1 className="text-2xl font-bold">Como você está</h1>
       {today ? (
         <Card tone="accent" className="text-[13px] text-ink-2">
           Você já registrou hoje (humor {today.type === 'diary' ? today.mood : ''}/5). Pode registrar de novo se o dia mudou.

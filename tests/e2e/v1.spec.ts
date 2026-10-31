@@ -60,28 +60,51 @@ test.describe('ZERO V1', () => {
     await expect(page.getByText('Sem cigarro')).toBeVisible();
   });
 
-  test('SOS abre direto no cronômetro, aceita avaliação intermediária e grava evento', async ({ page }) => {
+  test('SOS: linha de base, "continua" com troca de estratégia, saída com registro, sessão sem linha de base', async ({ page }) => {
     await onboard(page);
     await page.getByTestId('sos').click();
     await expect(page.getByTestId('sos-timer')).toHaveText(/0[23]:\d\d/);
     await expect(page.locator('[aria-live=polite]')).toContainText(/Inspire|Segure|Solte/);
+    // linha de base nos primeiros segundos
+    await page.getByRole('radiogroup', { name: 'Vontade ao começar' }).getByRole('radio', { name: '7' }).click();
+    await expect(page.getByText('Registrado: 7 ao começar')).toBeVisible();
     await page.getByRole('button', { name: 'Como está agora?' }).click();
-    await page.getByRole('radio', { name: '7' }).click();
-    await expect(page.getByText('Registrado: 7')).toBeVisible();
+    await page.getByRole('radiogroup', { name: 'Intensidade agora' }).getByRole('radio', { name: '5' }).click();
+    await expect(page.getByText('Registrado: 7 ao começar → 5')).toBeVisible();
+    // a vontade continua → trocar estratégia e seguir no mesmo episódio
+    await page.getByTestId('sos-continue').click();
+    await expect(page.getByText('A vontade continua')).toBeVisible();
+    await page.getByTestId('sos-continue-switch').click();
+    await page.getByTestId('strategy-water').click();
+    await expect(page.getByRole('heading', { name: 'Beber água' })).toBeVisible();
+    await expect(page.getByText('Registrado: 7 ao começar → 5')).toBeVisible();
+    // diminuiu → salvar
     await page.getByTestId('sos-passed').click();
-    await page.getByRole('radio', { name: '2' }).click();
+    await page.getByRole('radiogroup', { name: 'Intensidade final' }).getByRole('radio', { name: '2' }).click();
     await page.getByRole('button', { name: 'Café' }).click();
     await page.getByTestId('sos-save-resisted').click();
     await expect(page.getByTestId('sos')).toBeVisible();
-    const ev = await readEvents(page);
+    let ev = await readEvents(page);
     const c = ev.find((e) => e.type === 'craving') as Record<string, unknown>;
     expect(c).toBeTruthy();
     expect(c.outcome).toBe('resisted');
+    expect(c.strategy).toBe('water');
+    expect(c.intensityBefore).toBe(7);
     expect(c.intensityAfter).toBe(2);
-    expect(c.trigger).toBe('coffee');
     expect((c.ratings as unknown[]).length).toBe(1);
+    // segunda sessão: sem linha de base, sai com a vontade presente; registro fica
+    await page.getByTestId('sos').click();
+    await page.getByTestId('sos-continue').click();
+    await page.getByTestId('sos-save-continued').click();
+    await expect(page.getByTestId('sos')).toBeVisible();
+    ev = await readEvents(page);
+    const cs = ev.filter((e) => e.type === 'craving') as Record<string, unknown>[];
+    expect(cs.length).toBe(2);
+    const second = cs.find((e) => e.outcome === 'continued')!;
+    expect(second.intensityBefore).toBeNull();
     await page.getByRole('link', { name: 'Histórico' }).click();
-    await expect(page.getByTestId('ev-craving')).toContainText('Vontade superada');
+    await expect(page.getByText('Vontade superada')).toBeVisible();
+    await expect(page.getByText('Vontade continuava ao sair')).toBeVisible();
   });
 
   test('diário em menos de 60 s e visível no painel', async ({ page }) => {
@@ -98,22 +121,27 @@ test.describe('ZERO V1', () => {
     await expect(page.getByText('Registrado: humor 4/5 · sono 5/5')).toBeVisible();
   });
 
-  test('lapso: fluxo protetor, histórico preservado, dias acumulados não zeram', async ({ page }) => {
+  test('uso registrado pelo SOS: fluxo protetor, histórico preservado, dias somados não zeram', async ({ page }) => {
     await onboard(page, 5);
     await expect(page.getByTestId('total-days')).toHaveText('5');
-    await page.getByRole('link', { name: /Registrar lapso/ }).click();
+    await expect(page.getByRole('link', { name: /Registrar um uso/ })).toBeVisible();
+    await page.getByTestId('sos').click();
+    await page.getByTestId('sos-smoked').click();
+    await expect(page.getByText('Houve uso')).toBeVisible();
+    await page.getByTestId('sos-save-slipped').click();
+    await expect(page).toHaveURL(/lapso/);
     await page.getByTestId('slip-units').fill('2');
     await page.getByRole('button', { name: /Adicionar detalhes/ }).click();
     await page.getByRole('button', { name: 'Estresse' }).click();
     await page.getByTestId('slip-save').click();
-    await expect(page.getByText('Um lapso não apaga o caminho.')).toBeVisible();
-    await expect(page.getByText(/dias livres acumulados: 5/)).toBeVisible();
+    await expect(page.getByText('Uso registrado. O histórico permanece.')).toBeVisible();
+    await expect(page.getByText(/Dias somados: 5/)).toBeVisible();
     await page.getByRole('button', { name: 'Voltar ao painel' }).click();
     await expect(page.getByTestId('total-days')).toHaveText('5');
-    await expect(page.getByText('Desde o último consumo')).toBeVisible();
-    await expect(page.getByText('0 min', { exact: true }).first()).toBeVisible();
-    await expect(page.getByText(/não zera/)).toHaveCount(0); // já voltamos ao painel
+    await expect(page.getByText(/há 0 min desde o último uso/)).toBeVisible();
+    await expect(page.getByText('Maior período contínuo')).toBeVisible();
     await page.getByRole('link', { name: 'Histórico' }).click();
+    await expect(page.getByTestId('ev-craving')).toContainText('Vontade → uso');
     await expect(page.getByTestId('ev-slip')).toContainText('Lapso: 2 cigarros');
     await expect(page.getByText('· lapso')).toBeVisible();
   });
@@ -168,11 +196,11 @@ test.describe('ZERO V1', () => {
     // linha do tempo
     await page.getByRole('link', { name: 'Histórico' }).click();
     await page.getByRole('link', { name: /Linha do tempo da recuperação/ }).click();
-    await expect(page.getByText('✓ alcançado').first()).toBeVisible();
+    await expect(page.getByText('prazo passado').first()).toBeVisible();
     await expect(page.getByRole('link', { name: 'NHS · INCA' }).first()).toHaveAttribute('href', /nhs\.uk|gov\.br/);
     // card do dia no painel
     await page.getByRole('link', { name: 'Agora' }).click();
-    await expect(page.getByText('Seu corpo agora')).toBeVisible();
+    await expect(page.getByText('Referência de recuperação')).toBeVisible();
     await expect(page.getByText('Mensagem do dia')).toBeVisible();
     await expect(page.getByText('Olfato e paladar melhoram')).toBeVisible();
   });

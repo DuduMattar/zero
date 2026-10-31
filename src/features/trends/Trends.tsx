@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useData } from '../../app/hooks/useData';
 import { ACHIEVEMENTS } from '../../domain/achievements';
-import { strategyEffectiveness } from '../../domain/craving';
+import { BASELINE_WINDOW_SEC, strategyEffectiveness } from '../../domain/craving';
 import { formatMoney } from '../../domain/format';
 import { projectSavings } from '../../domain/money';
 import { avgDropOverall, cravingsByHour, dailySeries, topTriggers } from '../../domain/stats';
@@ -121,7 +121,7 @@ export function Trends() {
           <ul className="mt-2 divide-y divide-line">
             {strategies.map((s) => (
               <li key={s.strategy} className="flex items-center justify-between py-2.5 text-[0.95rem]">
-                <span>{strategyById(s.strategy).label} <span className="text-ink-3">· {s.n}×</span></span>
+                <span>{strategyById(s.strategy).label} <span className="text-ink-3">· {s.n}× · {s.measured} {s.measured === 1 ? 'medida' : 'medidas'}</span></span>
                 <span className={`tabular font-semibold ${s.sufficient ? 'text-accent' : 'text-ink-3'}`}>{s.avgDrop != null ? `−${s.avgDrop.toFixed(1)}` : '—'}{!s.sufficient ? ' ·' : ''}</span>
               </li>
             ))}
@@ -129,7 +129,7 @@ export function Trends() {
         ) : (
           <p className="mt-2 text-[0.9rem] text-ink-3">Ainda sem registros de SOS.</p>
         )}
-        <div className="mt-2 text-[0.75rem] text-ink-3">Queda média de intensidade (0–10) associada a cada estratégia nos seus registros. Marcamos como "suficiente" só com {MIN_CRAVINGS_FOR_STRATEGY} ou mais medidas (· = poucas). É descritivo e exploratório: não prova que a estratégia causou a queda.</div>
+        <div className="mt-2 text-[0.75rem] text-ink-3">Queda = vontade avaliada nos primeiros {BASELINE_WINDOW_SEC} s do SOS, antes de a estratégia agir, menos a última avaliação. Episódios sem essa avaliação inicial ficam registrados, mas não entram aqui. "Suficiente" só com {MIN_CRAVINGS_FOR_STRATEGY} medidas. Descritivo, não causal.</div>
       </Card>
 
       <Card className="p-6">

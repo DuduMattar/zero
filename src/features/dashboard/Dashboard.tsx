@@ -9,6 +9,7 @@ import { timelinePosition, EVIDENCE_LABEL } from '../../domain/timeline';
 import type { TrackId } from '../../domain/types';
 import { Button, Card, Label, Progress, useToast } from '../../ui';
 import { PlanCard } from './PlanCard';
+import { PRODUCTS, type ProductId } from '../../domain/types';
 import { ReviewCard } from '../trends/ReviewCard';
 import { shareProgress } from '../../app/share';
 import { updateSettings } from '../../data/repos';
@@ -54,6 +55,8 @@ export function Dashboard() {
   const bestFromHistory = profile.longestQuitDays ? profile.longestQuitDays * MS_DAY : 0;
   const hour = Number(new Intl.DateTimeFormat('en-US', { timeZone: profile.tz, hour: 'numeric', hourCycle: 'h23' }).format(new Date(now)));
   const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
+  const what = mainLabel(profile.products);
+  const totalDays = wholeDays(main.totalFreeMs);
 
   return (
     <div className="stagger space-y-6">
@@ -91,20 +94,22 @@ export function Dashboard() {
         </Card>
       ) : (
         <Card className="p-6">
-          <Label>Dias livres acumulados</Label>
-          <div className="mt-2 flex items-end justify-between gap-4">
-            <div className="tabular sensitive text-[4rem] font-bold leading-[0.9]" data-testid="total-days">{wholeDays(main.totalFreeMs)}</div>
-            <div className="pb-1 text-right">
-              <Label>Recorde</Label>
-              <div className="tabular sensitive text-[1.35rem] font-semibold leading-tight">{humanDuration(Math.max(main.bestMs, bestFromHistory))}</div>
+          <div className="flex items-end gap-3">
+            <div className="tabular sensitive text-[4rem] font-bold leading-[0.9]" data-testid="total-days">{totalDays}</div>
+            <div className="pb-1 leading-tight">
+              <div className="text-[1.1rem] font-semibold">{totalDays === 1 ? 'dia' : 'dias'} {what}</div>
+              <div className="text-[0.85rem] text-ink-3">somados entre seus períodos</div>
             </div>
           </div>
-          <div className="mt-5 flex items-end justify-between border-t border-line pt-4">
-            <div>
-              <Label>Desde o último consumo</Label>
-              <div className="tabular sensitive text-[1.5rem] font-semibold leading-tight">{humanDuration(main.currentMs)}</div>
+          <div className="mt-5 space-y-2 border-t border-line pt-4 text-[1rem]">
+            <div className="flex justify-between gap-3">
+              <span className="text-ink-2">Agora</span>
+              <span className="tabular sensitive text-right font-semibold">há {humanDuration(main.currentMs)} desde o último uso</span>
             </div>
-            <span className="pb-1 text-[0.85rem] text-ink-3">desde {main.currentStartAt ? formatDate(main.currentStartAt, profile.tz) : '—'}</span>
+            <div className="flex justify-between gap-3">
+              <span className="text-ink-2">Maior período contínuo</span>
+              <span className="tabular sensitive font-semibold">{humanDuration(Math.max(main.bestMs, bestFromHistory))}</span>
+            </div>
           </div>
           <button
             type="button"
@@ -127,16 +132,17 @@ export function Dashboard() {
         <Link to="/linha-do-tempo" className="block">
           <Card className="space-y-3 p-6">
             <div className="flex items-center justify-between">
-              <Label>Seu corpo agora</Label>
+              <Label>Referência de recuperação</Label>
               <span className="text-[0.75rem] text-ink-3">{tl.current ? EVIDENCE_LABEL[tl.current.evidence] : ''}</span>
             </div>
+            <div className="text-[0.85rem] text-ink-3">Há <span className="tabular sensitive">{humanDuration(main.runMs)}</span> desde o início desta tentativa. Para quem parou de fumar, estudos descrevem por volta deste prazo:</div>
             {tl.current ? (
               <>
                 <div className="text-[1.15rem] font-semibold leading-snug">{tl.current.title}</div>
                 <p className="text-ink-2">{tl.current.body}</p>
               </>
             ) : (
-              <p className="text-ink-2">Os primeiros efeitos começam em minutos. Abra a linha do tempo para ver o que vem.</p>
+              <p className="text-ink-2">Os primeiros efeitos descritos começam em minutos. Abra a linha do tempo para ver o que vem.</p>
             )}
             {tl.next ? (
               <div>
@@ -150,6 +156,7 @@ export function Dashboard() {
             {profile.products.includes('vape') && !profile.products.some((p) => p === 'cigarette' || p === 'rolled' || p === 'cigar') ? (
               <div className="text-[0.75rem] text-warn">Prazos de estudos com cigarro; para quem usava só vape, a evidência é limitada.</div>
             ) : null}
+            <div className="text-[0.75rem] text-ink-3">Média de estudos, não medição do seu corpo.</div>
           </Card>
         </Link>
       ) : null}
@@ -165,7 +172,8 @@ export function Dashboard() {
       </Card>
 
       <Card className="p-6">
-        <Label className="mb-2">Como foi hoje?</Label>
+        <Label>Como você está</Label>
+        <div className="mb-3 text-[0.85rem] text-ink-3">Humor, sono e vontade. Menos de um minuto.</div>
         {diaryToday && diaryToday.type === 'diary' ? (
           <div className="flex items-center justify-between">
             <span className="text-ink-2">Registrado: humor {diaryToday.mood}/5 · sono {diaryToday.sleep}/5</span>
@@ -206,8 +214,18 @@ export function Dashboard() {
       ) : null}
 
       <div className="pt-2 text-center">
-        <Link to="/lapso" className="text-[0.9rem] font-semibold text-ink-3 underline-offset-4 hover:underline">Fumei ou usei nicotina? Registrar lapso</Link>
+        <Link to="/lapso" className="text-[0.9rem] font-semibold text-ink-3 underline-offset-4 hover:underline">Fumei ou usei nicotina? Registrar um uso</Link>
       </div>
     </div>
   );
+}
+
+/** Nome da trilha principal no vocabulário do usuário: "sem cigarro", "sem vape" ou "sem tabaco ou vape". */
+function mainLabel(products: ProductId[]): string {
+  const cls = new Set(products.map((id) => PRODUCTS.find((p) => p.id === id)?.cls));
+  const smoke = cls.has('combustion') || cls.has('heated');
+  const vape = cls.has('vape');
+  if (smoke && !vape) return 'sem cigarro';
+  if (vape && !smoke) return 'sem vape';
+  return 'sem tabaco ou vape';
 }

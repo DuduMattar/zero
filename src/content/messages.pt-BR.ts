@@ -20,7 +20,7 @@ export const MESSAGES: readonly DayMessage[] = [
   { day: -1, title: 'Amanhã', body: 'Durma cedo. Tire da agenda de amanhã o que for evitável: bar, festa, reunião tensa. O primeiro dia merece ser simples.', action: 'Deixe água na cabeceira.' },
   // Fase 1: dias 1–7
   { day: 0, title: 'Dia zero', body: 'Hoje você não precisa vencer nada. Só precisa chegar até a hora de dormir sem fumar. Uma vontade de cada vez.', action: 'Quando bater, abra o SOS antes de pensar.' },
-  { day: 1, title: 'As primeiras 24 horas', body: 'A nicotina está saindo do corpo. Irritação, fome e inquietação são o sistema recalibrando, não um sinal de que você está falhando.', action: 'Registre como você está no diário.' },
+  { day: 1, title: 'As primeiras 24 horas', body: 'Se você parou a nicotina de vez, irritação, fome e inquietação podem aparecer nas primeiras 24 horas. É abstinência, não falha. Se está em reposição de nicotina, siga o plano combinado com o profissional.', action: 'Registre como você está no diário.' },
   { day: 2, title: 'O pior tende a ser agora', body: 'Entre o segundo e o terceiro dia a abstinência física costuma estar no pico. Isso não é o normal novo; é o ponto mais alto da curva.', action: 'Caminhe 10 minutos quando a vontade subir.' },
   { day: 3, title: '72 horas', body: 'Para quem fumava cigarro, respirar pode começar a ficar mais fácil. Algumas pessoas percebem nos primeiros dias; outras demoram mais.', action: 'Suba uma escada prestando atenção na respiração.' },
   { day: 4, title: 'Vontade não é ordem', body: 'Uma vontade é um sinal do corpo, como fome. Você pode sentir e não obedecer. Observe onde ela aparece: garganta, peito, mãos.', action: 'Na próxima, use "Observar" no SOS.' },
@@ -34,7 +34,7 @@ export const MESSAGES: readonly DayMessage[] = [
   { day: 11, title: 'Dinheiro', body: 'Veja quanto já ficou no bolso. Dar um destino concreto a esse dinheiro torna o progresso visível.', action: 'Defina um objetivo em Tendências.' },
   { day: 12, title: 'Situações sociais', body: 'A primeira festa sem fumar é a mais difícil. Vá com um plano: bebida sem álcool na mão, saída combinada, SOS no bolso.' },
   { day: 13, title: 'Humor', body: 'Irritabilidade e tristeza nas primeiras semanas são comuns e passam. Se não passarem ou piorarem muito, fale com um profissional. Não é fraqueza.' },
-  { day: 14, title: 'Duas semanas', body: 'A circulação melhora. Mãos e pés mais quentes, treino rendendo um pouco mais. O corpo está cobrando a conta em sentido inverso.' },
+  { day: 14, title: 'Duas semanas', body: 'Duas semanas. Para quem parou de fumar, estudos descrevem melhora da circulação por volta deste prazo. Varia de pessoa para pessoa; o que você sente é o seu dado.' },
   { day: 15, title: 'Se você já fumou de novo', body: 'Um lapso não anula duas semanas. Registrar ajuda a ver o que puxou e a planejar a próxima situação parecida. Anote e siga.' },
   { day: 16, title: 'Sono', body: 'Dormir melhor é um dos primeiros ganhos relatados. Veja no diário se o seu sono está mudando.' },
   { day: 17, title: 'Álcool', body: 'Álcool derruba a decisão e aciona o hábito ao mesmo tempo. Nas primeiras semanas, menos é mais.' },
@@ -50,7 +50,7 @@ export const MESSAGES: readonly DayMessage[] = [
   { day: 27, title: 'Energia', body: 'Compare a energia da primeira semana com a de agora no diário. O gráfico mostra o que a memória esquece.' },
   { day: 28, title: 'Quatro semanas', body: 'Um mês de hábitos novos. O que você faz no lugar do cigarro já é rotina, mesmo que ainda pareça esforço.' },
   { day: 29, title: 'Amanhã, 30', body: 'Trinta dias é um marco que muita gente não alcança. Prepare uma forma de marcar isso que não envolva fumar nem beber.' },
-  { day: 30, title: 'Trinta dias', body: 'Um mês. O risco de recaída cai bastante daqui em diante, mas não some. Os meses seguintes são de atenção, não de vigilância.' },
+  { day: 30, title: 'Trinta dias', body: 'Um mês é um marco. Escolha uma situação que ainda exige cuidado e combine consigo o que fará quando ela acontecer.' },
   // Fase 3: dias 31–60
   { day: 31, title: 'Segundo mês', body: 'Agora o perigo muda de forma: deixa de ser a vontade forte e passa a ser a confiança excessiva. "Já consigo controlar." Não precisa testar.' },
   { day: 33, title: 'Lapsos tardios', body: 'Depois do primeiro mês, o risco costuma vir de situações específicas: luto, festa, viagem, briga. Antecipe as suas e escreva o que vai fazer em cada uma.' },
@@ -64,7 +64,7 @@ export const MESSAGES: readonly DayMessage[] = [
   { day: 53, title: 'Peso', body: 'Ganhar alguns quilos nos primeiros meses é comum e reversível. O cigarro era muito pior para o corpo do que isso.' },
   { day: 56, title: 'Oito semanas', body: 'Dois meses. Gatilhos aprendidos ainda podem acender a vontade mesmo com a abstinência física bem menor. Dá para olhar para ela de fora.' },
   { day: 58, title: 'Quem ajudou', body: 'Alguém te apoiou nesses dois meses? Agradeça. Vínculo é fator de proteção, e dizer isso em voz alta reforça.' },
-  { day: 60, title: 'Sessenta dias', body: 'Dois meses. Poucas pessoas chegam aqui na primeira tentativa. Se não foi a primeira, chegou mesmo assim.' },
+  { day: 60, title: 'Sessenta dias', body: 'Dois meses. Olhe o seu histórico: o que mudou na sua rotina desde o dia zero? Isso é o que sustenta os próximos.' },
   // Fase 4: dias 61–90
   { day: 61, title: 'Manutenção', body: 'O último mês do programa é sobre tornar isso invisível. O objetivo é não pensar em cigarro, não resistir a ele.' },
   { day: 64, title: 'Sinais de alerta', body: 'Romantizar o cigarro ("era bom aquele depois do almoço"), ficar perto de quem fuma, guardar um isqueiro. São sinais, não acidentes.' },

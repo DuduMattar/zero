@@ -63,6 +63,12 @@ Direção "espaço para seguir" (revisão externa; contrastes AA recalculados e 
 - Ícone do app, `theme-color`, manifest e imagem de compartilhar nas cores novas.
 Testes: 49 unitários, 8 ponta a ponta. Capturas claro/escuro conferidas no Chrome emulando iPhone 13; não testado em iPhone real.
 
+## Futuro — decisões tomadas em 31/10/2026
+
+- **Chat com IA: adiado.** Decisão do usuário: pode virar recurso pago para terceiros no lançamento; por enquanto, não. Quando entrar, exige servidor (chave da API nunca no aparelho de terceiros; cobrança e controle de uso), ou seja, o ZERO deixa de ser "sem backend" nesse dia. Para uso pessoal antes disso, a alternativa é chave própria colada em Ajustes (só no aparelho), opt-in, com aviso de que os dados saem do aparelho. Requisitos já definidos: contexto compacto (dias, produtos, lapsos recentes, motivos, gatilhos), regras fixas (nada causal, nada de culpa, nada de dose, SAMU 192 e CVV 188 em crise), bateria de ~20 mensagens de vontade antes de ligar.
+- **Candidatas gratuitas e offline, em ordem:** áudio gravado pelo próprio usuário para tocar no SOS; "pedir ajuda" em um toque (WhatsApp com mensagem pronta para pessoa de confiança); botão que gera a automação do Atalhos nos horários de pico.
+- **Descartado:** modelo rodando no iPhone (instável em PWA), chat sem contexto, "IA" por regras fingindo conversa.
+
 ## V2 — restante (entrega 3)
 Relatório PDF via impressão, carta para o futuro, esportes (entrada manual), som opcional no SOS, "ver mensagens anteriores".
 

@@ -185,6 +185,10 @@ test.describe('ZERO V1', () => {
     await expect(page.getByTestId('plan-card')).toBeVisible();
     await page.getByTestId('plan-done').click();
     await expect(page.getByTestId('plan-card')).toContainText('Feito hoje');
+    await page.getByTestId('plan-undo').click();
+    await expect(page.getByTestId('plan-done')).toBeVisible();
+    await page.getByTestId('plan-done').click();
+    await expect(page.getByTestId('plan-card')).toContainText('Feito hoje');
     // compartilhar (sem Web Share no Chrome headless → download)
     const dl = page.waitForEvent('download');
     await page.getByTestId('share').click();

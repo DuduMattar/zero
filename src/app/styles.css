@@ -113,18 +113,22 @@ body {
 h1, h2, .display { font-family: var(--font-display); letter-spacing: -0.01em; }
 .display, .tabular { font-variant-numeric: lining-nums tabular-nums; }
 .tabular { font-family: var(--font-display); }
-button, input, select, textarea { font: inherit; color: inherit; }
-input, select, textarea { font-size: max(16px, 1rem); }
+@layer base {
+  /* evita zoom automático do iOS em campos; utilitários continuam vencendo */
+  input, select, textarea { font-size: max(16px, 1rem); }
+}
 
 .safe-top { padding-top: env(safe-area-inset-top); }
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
-.card {
-  background: var(--c-card);
-  border: 1px solid var(--c-line);
-  border-radius: 20px;
+@layer components {
+  .card {
+    background: var(--c-card);
+    border: 1px solid var(--c-line);
+    border-radius: 20px;
+  }
+  .press { transition: transform 140ms ease, opacity 140ms ease, background-color 140ms ease; }
+  .press:active { transform: scale(0.98); }
 }
-.press { transition: transform 140ms ease, opacity 140ms ease, background-color 140ms ease; }
-.press:active { transform: scale(0.98); }
 
 .skeleton {
   background: linear-gradient(90deg, var(--c-card-2) 25%, var(--c-line) 50%, var(--c-card-2) 75%);
@@ -155,7 +159,7 @@ input, select, textarea { font-size: max(16px, 1rem); }
 .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
 .cal > div { position: relative; aspect-ratio: 1; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; font-family: var(--font-display); font-variant-numeric: tabular-nums; }
 .cal .free { background: var(--c-accent); color: var(--c-accent-ink); }
-.cal .slip { background: var(--c-warn); color: #1f1600; }
+.cal .slip { background: var(--c-warn); color: var(--c-bg); }
 .cal .relapse { background: var(--c-line); color: var(--c-ink-2); }
 /* símbolo além da cor: lapso = ponto, recaída = traço */
 .cal .slip::after, .cal .relapse::after { position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); font-size: 0.6rem; line-height: 1; }

@@ -10,7 +10,7 @@ import type { TrackId } from '../../domain/types';
 import { Button, Card, Label, useToast } from '../../ui';
 import { PlanCard } from './PlanCard';
 import { IconEye, IconEyeOff, IconGear } from '../../ui/icons';
-import { validDraft } from '../sos/Sos';
+import { readDraft } from '../sos/Sos';
 import { PRODUCTS, type ProductId } from '../../domain/types';
 import { ReviewCard } from '../trends/ReviewCard';
 import { shareProgress } from '../../app/share';
@@ -58,7 +58,7 @@ export function Dashboard() {
   const hour = Number(new Intl.DateTimeFormat('en-US', { timeZone: profile.tz, hour: 'numeric', hourCycle: 'h23' }).format(new Date(now)));
   const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
   const what = mainLabel(profile.products);
-  const draft = validDraft(settings.sosDraft, now);
+  const draft = readDraft(settings.sosDraft);
   const totalDays = wholeDays(main.totalFreeMs);
 
   return (
@@ -82,7 +82,7 @@ export function Dashboard() {
       <Button variant="primary" full size="lg" className="min-h-[68px] text-[1.1rem]" onClick={() => nav('/sos')} data-testid="sos">
         {draft ? 'Voltar à vontade em andamento' : 'Estou com vontade de fumar'}
       </Button>
-      {draft ? <div className="-mt-4 text-center text-[0.8rem] text-ink-3" data-testid="sos-draft-hint">Você tem um SOS aberto desde {formatTime(draft.startedAt, profile.tz)}. Ele continua de onde parou.</div> : null}
+      {draft ? <div className="-mt-4 text-center text-[0.8rem] text-ink-3" data-testid="sos-draft-hint">Você tem um SOS aberto desde {formatTime(draft.state.startedAt, profile.tz)}. Ele continua de onde parou.</div> : null}
 
       {relapsing ? (
         <Card tone="warn" className="space-y-3 p-6">

@@ -66,6 +66,29 @@ async function readSettings(page: Page): Promise<Record<string, unknown>> {
   );
 }
 
+/** Liga a reposição de nicotina direto no banco (o onboarding dos testes não passa por esse passo). */
+async function enableNrt(page: Page) {
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve, reject) => {
+        const req = indexedDB.open('zero');
+        req.onerror = () => reject(req.error);
+        req.onsuccess = () => {
+          const db = req.result;
+          const tx = db.transaction('profile', 'readwrite');
+          const store = tx.objectStore('profile');
+          const get = store.get('singleton');
+          get.onsuccess = () => {
+            const p = get.result as Record<string, unknown>;
+            store.put({ ...p, nrt: { uses: true, kind: 'gum', plannedEndAt: null }, nicotineFreeAt: null, updatedAt: Date.now() });
+          };
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        };
+      }),
+  );
+}
+
 test.describe('ZERO V1', () => {
   test('onboarding → painel persiste após recarregar', async ({ page }) => {
     await onboard(page, 3);
@@ -132,7 +155,7 @@ test.describe('ZERO V1', () => {
     await expect(page.getByText('Vontade continuava ao sair')).toBeVisible();
   });
 
-  test('SOS: rascunho sobrevive a recarregar; pessoa de apoio abre o WhatsApp sem enviar; fechar salva como encerrada', async ({ page }) => {
+  test('SOS: rascunho sobrevive a recarregar o app (não testa a suspensão real do iOS); link do WhatsApp preparado, não enviado; fechar salva como encerrada', async ({ page }) => {
     await onboard(page);
     await page.goto('/#/ajustes/perfil');
     await page.getByTestId('support-name').fill('Pedro');
@@ -144,7 +167,7 @@ test.describe('ZERO V1', () => {
     await page.getByRole('button', { name: /Como está a vontade/ }).click();
     await page.getByRole('radiogroup', { name: 'Intensidade agora' }).getByRole('radio', { name: '6' }).click();
     await expect(page.getByText(/Registrado: 6 aos/)).toBeVisible();
-    await expect.poll(async () => ((await readSettings(page)) as { sosDraft?: { intensityBefore?: number } | null }).sosDraft?.intensityBefore).toBe(6);
+    await expect.poll(async () => ((await readSettings(page)) as { sosDraft?: { state?: { intensityBefore?: number } } | null }).sosDraft?.state?.intensityBefore).toBe(6);
     // sai do SOS pelo painel e recarrega o app inteiro (como voltar de outro app)
     await page.goto('/#/');
     await expect(page.getByTestId('sos')).toHaveText('Voltar à vontade em andamento');
@@ -170,6 +193,44 @@ test.describe('ZERO V1', () => {
     expect(cs[0].intensityBefore).toBe(6);
     expect(cs[0].strategies).toEqual(['breathing', 'walk']);
     expect(ev.some((e) => e.type === 'nrt_dose')).toBe(false); // sem dose inventada
+  });
+
+  test('SOS com reposição: escolher a estratégia não registra dose; confirmar registra uma, mesmo após trocar e sair por "Continua"', async ({ page }) => {
+    await onboard(page);
+    await enableNrt(page);
+    await page.goto('/#/');
+    await page.reload(); // a consulta ao vivo só vê gravações feitas pelo próprio Dexie
+    await expect(page.getByText('em reposição de nicotina')).toBeVisible();
+    await page.getByTestId('sos').click();
+    await page.getByTestId('sos-switch').click();
+    await page.getByTestId('strategy-nrt_fast').click();
+    await expect(page.getByRole('heading', { name: 'Goma ou pastilha de reposição' })).toBeVisible();
+    await page.getByTestId('sos-switch').click();
+    await page.getByTestId('strategy-water').click();
+    await page.getByTestId('sos-continue').click();
+    // a pergunta aparece na saída "Continua" porque a reposição esteve na sessão
+    await expect(page.getByTestId('sos-nrt-confirm')).toBeVisible();
+    await page.getByTestId('sos-save-continued').click(); // sem responder: nada de dose
+    await expect(page.getByTestId('sos')).toBeVisible();
+    let ev = await readEvents(page);
+    expect(ev.filter((e) => e.type === 'nrt_dose').length).toBe(0);
+    expect((ev.find((e) => e.type === 'craving') as Record<string, unknown>).strategies).toEqual(['breathing', 'nrt_fast', 'water']);
+    // segunda sessão: confirma a goma e fecha pelo "Fechar"
+    await page.getByTestId('sos').click();
+    await page.getByTestId('sos-switch').click();
+    await page.getByTestId('strategy-nrt_fast').click();
+    await page.getByRole('button', { name: 'Fechar' }).click();
+    await page.getByTestId('sos-nrt-confirm').getByRole('button', { name: 'Goma' }).click();
+    await expect(page.getByText(/Dose às \d\d:\d\d/)).toBeVisible();
+    await page.getByTestId('sos-close-save').click();
+    await expect(page.getByTestId('sos')).toBeVisible();
+    ev = await readEvents(page);
+    const doses = ev.filter((e) => e.type === 'nrt_dose') as Record<string, unknown>[];
+    expect(doses.length).toBe(1);
+    expect(doses[0].kind).toBe('gum');
+    const cs = ev.filter((e) => e.type === 'craving') as Record<string, unknown>[];
+    expect(cs.length).toBe(2);
+    expect(doses[0].id).toBe(`${cs.find((c) => c.outcome === 'abandoned')!.id}-nrt`); // id derivado do episódio
   });
 
   test('diário em menos de 60 s e visível no painel', async ({ page }) => {

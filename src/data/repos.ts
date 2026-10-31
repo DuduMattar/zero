@@ -1,7 +1,7 @@
 import { db, type Snapshot, type ZeroDB } from './db';
 import { buildBackup, canonicalJson, mergeBackup, sha256Hex, validateBackup, type BackupFile, type BackupPayload } from '../domain/backup';
 import { newId } from '../domain/ids';
-import { DEFAULT_SETTINGS, SCHEMA_VERSION, type AppEvent, type Profile, type Settings } from '../domain/types';
+import { DEFAULT_SETTINGS, SCHEMA_VERSION, type AppEvent, type CravingEvent, type NrtDoseEvent, type Profile, type Settings } from '../domain/types';
 
 const AUTO_SNAPSHOTS_TO_KEEP = 7;
 
@@ -27,6 +27,19 @@ export async function updateSettings(patch: Partial<Settings>, d: ZeroDB = db): 
 export async function addEvent<E extends AppEvent>(e: E, d: ZeroDB = db): Promise<E> {
   await d.events.add(e);
   return e;
+}
+
+/**
+ * Encerra uma sessão do SOS numa transação só: episódio, dose confirmada (se houver) e limpeza do rascunho.
+ * `put` com ids estáveis: repetir depois de uma falha no meio não duplica nada.
+ */
+export async function saveCravingSession(ev: CravingEvent, dose: NrtDoseEvent | null, d: ZeroDB = db): Promise<void> {
+  await d.transaction('rw', d.events, d.settings, async () => {
+    await d.events.put(ev);
+    if (dose) await d.events.put(dose);
+    const cur = (await d.settings.get('singleton')) ?? DEFAULT_SETTINGS;
+    await d.settings.put({ ...cur, sosDraft: null });
+  });
 }
 
 export async function listEvents(d: ZeroDB = db): Promise<AppEvent[]> {

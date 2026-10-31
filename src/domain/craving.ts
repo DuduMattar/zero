@@ -11,6 +11,8 @@ export type CravingStep = 'relief' | 'exit' | 'done';
 export type CravingOutcome = 'resisted' | 'slipped' | 'continued' | 'abandoned';
 
 export interface CravingState {
+  /** id estável do episódio: salvar duas vezes grava uma vez */
+  id: string;
   step: CravingStep;
   startedAt: number;
   durationSec: number;
@@ -22,25 +24,32 @@ export interface CravingState {
   ratings: CravingRating[];
   intensityAfter: number | null;
   trigger: string | null;
-  /** reposição confirmada na saída (null = não usou / não perguntado) */
+  /** reposição confirmada pela pessoa (null = não usou / não perguntado) e o horário informado da dose */
   nrtUsed: 'patch' | 'gum' | 'lozenge' | 'other' | null;
+  nrtUsedAt: number | null;
   outcome: CravingOutcome | null;
   endedAt: number | null;
 }
 
 export type CravingAction =
-  | { type: 'start'; now: number; strategy: string; durationSec: number }
+  | { type: 'start'; id: string; now: number; strategy: string; durationSec: number }
   | { type: 'setStrategy'; strategy: string; now: number; durationSec: number }
+  /** recurso combinado (ex.: ler motivos durante a respiração): entra na lista, não troca a estratégia ativa */
+  | { type: 'addAid'; aid: string }
   | { type: 'rateNow'; now: number; intensity: number }
   | { type: 'extend'; extraSec: number }
   | { type: 'toExit'; now: number; outcome: 'resisted' | 'slipped' | 'continued' }
   | { type: 'backToRelief' }
   | { type: 'setAfter'; intensity: number }
   | { type: 'setTrigger'; trigger: string | null }
-  | { type: 'setNrtUsed'; kind: CravingState['nrtUsed'] }
-  | { type: 'finish'; now: number; outcome?: CravingOutcome };
+  | { type: 'setNrtUsed'; kind: CravingState['nrtUsed']; now: number }
+  | { type: 'setNrtUsedAt'; at: number }
+  | { type: 'finish'; now: number; outcome?: CravingOutcome }
+  /** retomar um rascunho gravado */
+  | { type: 'load'; state: CravingState };
 
 export const initialCraving = (): CravingState => ({
+  id: '',
   step: 'relief',
   startedAt: 0,
   durationSec: 180,
@@ -53,6 +62,7 @@ export const initialCraving = (): CravingState => ({
   intensityAfter: null,
   trigger: null,
   nrtUsed: null,
+  nrtUsedAt: null,
   outcome: null,
   endedAt: null,
 });
@@ -63,12 +73,14 @@ const secSince = (now: number, t0: number) => Math.max(0, Math.round((now - t0) 
 export function cravingReducer(s: CravingState, a: CravingAction): CravingState {
   switch (a.type) {
     case 'start':
-      return { ...initialCraving(), startedAt: a.now, strategyStartedAt: a.now, durationSec: a.durationSec, strategy: a.strategy, strategies: [a.strategy] };
+      return { ...initialCraving(), id: a.id, startedAt: a.now, strategyStartedAt: a.now, durationSec: a.durationSec, strategy: a.strategy, strategies: [a.strategy] };
     case 'setStrategy': {
       if (s.step !== 'relief' || a.strategy === s.strategy) return s;
       // Trocar reinicia o tempo sugerido da nova estratégia; a sessão continua a mesma.
       return { ...s, strategy: a.strategy, strategies: [...s.strategies, a.strategy], strategyStartedAt: a.now, durationSec: secSince(a.now, s.startedAt) + a.durationSec };
     }
+    case 'addAid':
+      return s.step === 'done' || s.strategies.includes(a.aid) ? s : { ...s, strategies: [...s.strategies, a.aid] };
     case 'rateNow': {
       if (s.step === 'done') return s;
       const atSec = secSince(a.now, s.startedAt);
@@ -86,9 +98,13 @@ export function cravingReducer(s: CravingState, a: CravingAction): CravingState 
     case 'setTrigger':
       return { ...s, trigger: a.trigger };
     case 'setNrtUsed':
-      return { ...s, nrtUsed: a.kind };
+      return { ...s, nrtUsed: a.kind, nrtUsedAt: a.kind ? (s.nrtUsedAt ?? a.now) : null };
+    case 'setNrtUsedAt':
+      return s.nrtUsed ? { ...s, nrtUsedAt: a.at } : s;
     case 'finish':
       return { ...s, step: 'done', outcome: a.outcome ?? s.outcome ?? 'abandoned', endedAt: s.endedAt ?? a.now };
+    case 'load':
+      return { ...initialCraving(), ...a.state };
   }
 }
 
@@ -98,7 +114,7 @@ export const usedNrtStrategy = (s: CravingState) => s.strategies.includes('nrt_f
 export function toCravingEvent(s: CravingState, id: string, tz: string, createdAt: number): CravingEvent {
   const end = s.endedAt ?? createdAt;
   return {
-    id,
+    id: s.id || id,
     type: 'craving',
     at: s.startedAt,
     tz,
@@ -125,7 +141,7 @@ export function cravingDrop(e: CravingEvent): number | null {
   return measures[0] - measures[measures.length - 1];
 }
 
-/** Entra na comparação por estratégia: uma única estratégia conhecida e pelo menos duas medidas. Registros antigos (sem `strategies`) ficam fora. */
+/** Entra na comparação por estratégia: uma única estratégia conhecida (sem trocas nem recursos combinados, como ler motivos) e pelo menos duas medidas. Registros antigos (sem `strategies`) ficam fora. */
 export const comparable = (e: CravingEvent) => e.strategies?.length === 1 && cravingDrop(e) != null;
 
 export interface StrategyStat {

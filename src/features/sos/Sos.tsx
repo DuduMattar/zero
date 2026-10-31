@@ -1,12 +1,21 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useData, type Data } from '../../app/hooks/useData';
-import { addEvent, stamp, updateSettings } from '../../data/repos';
+import { saveCravingSession, stamp, updateSettings } from '../../data/repos';
 import { cravingReducer, initialCraving, toCravingEvent, usedNrtStrategy, type CravingState } from '../../domain/craving';
+import { epochToLocalInput, formatDateTime, formatTime, localInputToEpoch } from '../../domain/format';
+import type { NrtDoseEvent } from '../../domain/types';
 import { STRATEGIES, TRIGGERS, strategyById } from '../../content/strategies';
-import { Button, Chip, Label, Scale, Sheet, useToast } from '../../ui';
+import { Button, Chip, Label, Scale, Sheet, inputCls, useToast } from '../../ui';
 
-const DRAFT_MAX_AGE_MS = 6 * 3_600_000;
+/** Depois disso o rascunho é "antigo": não é retomado em silêncio, mas também não é descartado sem decisão. */
+export const DRAFT_STALE_MS = 6 * 3_600_000;
+
+export interface SosDraft {
+  state: CravingState;
+  /** último passo gravado; vira o fim do episódio se ele for encerrado depois de ficar antigo */
+  updatedAt: number;
+}
 
 function useTick(active: boolean) {
   const [t, setT] = useState(() => Date.now());
@@ -18,15 +27,19 @@ function useTick(active: boolean) {
   return t;
 }
 
-/** Rascunho válido: episódio começado há menos de 6 h e ainda não concluído. */
-export function validDraft(raw: unknown, now: number): CravingState | null {
+/** Rascunho não concluído, em qualquer idade. Aceita o formato antigo (estado solto). */
+export function readDraft(raw: unknown): SosDraft | null {
   if (!raw || typeof raw !== 'object') return null;
-  const d = raw as Partial<CravingState>;
-  if (!d.startedAt || d.step === 'done' || now - d.startedAt > DRAFT_MAX_AGE_MS || !Array.isArray(d.strategies)) return null;
-  return { ...initialCraving(), ...d } as CravingState;
+  const r = raw as { state?: unknown; updatedAt?: unknown; startedAt?: unknown };
+  const st = (r.state && typeof r.state === 'object' ? r.state : 'startedAt' in r ? raw : null) as Partial<CravingState> | null;
+  if (!st || !st.startedAt || st.step === 'done' || !Array.isArray(st.strategies)) return null;
+  const state = { ...initialCraving(), ...st } as CravingState;
+  const updatedAt = typeof r.updatedAt === 'number' ? r.updatedAt : state.endedAt ?? state.startedAt;
+  return { state, updatedAt };
 }
+export const isStale = (d: SosDraft, now: number) => now - d.updatedAt > DRAFT_STALE_MS;
 
-/** Link do WhatsApp com mensagem pronta. Só prepara; quem envia é a pessoa. */
+/** Link do WhatsApp com mensagem pronta. Só prepara; quem envia é a pessoa. Exige rede e o app do WhatsApp. */
 export function whatsappLink(phone: string, message: string): string {
   let digits = phone.replace(/\D/g, '');
   if (digits.length <= 11) digits = '55' + digits;
@@ -43,26 +56,35 @@ function SosInner({ data }: { data: Data }) {
   const nav = useNavigate();
   const toast = useToast();
   const { profile, settings } = data;
-  const [s, dispatch] = useReducer(cravingReducer, undefined, () => {
-    // Alívio primeiro: a estratégia já começa ao abrir. Se há episódio em andamento, retoma exatamente ele.
-    const draft = validDraft(settings.sosDraft, Date.now());
-    if (draft) return draft;
+  const fresh = () => {
     const strat = strategyById(settings.favoriteStrategy ?? 'breathing');
-    return cravingReducer(initialCraving(), { type: 'start', now: Date.now(), strategy: strat.id, durationSec: settings.sosDefaultDurationSec || strat.defaultSec });
+    const now = Date.now();
+    return cravingReducer(initialCraving(), { type: 'start', id: stamp(now, profile.tz).id, now, strategy: strat.id, durationSec: settings.sosDefaultDurationSec || strat.defaultSec });
+  };
+  // Alívio primeiro: a estratégia já começa ao abrir. Rascunho recente é retomado em silêncio; antigo pede decisão.
+  const [stale, setStale] = useState<SosDraft | null>(() => {
+    const d = readDraft(settings.sosDraft);
+    return d && isStale(d, Date.now()) ? d : null;
+  });
+  const [s, dispatch] = useReducer(cravingReducer, undefined, () => {
+    const d = readDraft(settings.sosDraft);
+    return d && !isStale(d, Date.now()) ? d.state : fresh();
   });
   const [rateOpen, setRateOpen] = useState(false);
   const [reasonsOpen, setReasonsOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
   const [contextOpen, setContextOpen] = useState(false);
+  const [nrtTimeOpen, setNrtTimeOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const resumed = useRef(Boolean(validDraft(settings.sosDraft, Date.now())));
+  const resumed = useRef(Boolean(readDraft(settings.sosDraft) && !stale));
 
-  // Rascunho gravado a cada passo: fechar o app, abrir o WhatsApp ou recarregar não perde o episódio.
+  // Rascunho gravado a cada passo (enquanto não há decisão pendente sobre um rascunho antigo).
   useEffect(() => {
-    if (s.step === 'done') return;
-    updateSettings({ sosDraft: s }).catch(console.error);
-  }, [s]);
+    if (s.step === 'done' || stale) return;
+    const draft: SosDraft = { state: s, updatedAt: Date.now() };
+    updateSettings({ sosDraft: draft }).catch(console.error);
+  }, [s, stale]);
   useEffect(() => {
     if (resumed.current) toast('Vontade em andamento retomada.');
   }, [toast]);
@@ -84,14 +106,15 @@ function SosInner({ data }: { data: Data }) {
   const support = profile.support && profile.support.phone ? profile.support : null;
   const measures = [...(s.intensityBefore != null ? [`${s.intensityBefore} aos ${s.intensityBeforeAtSec ?? 0} s`] : []), ...s.ratings.map((r) => String(r.intensity))];
 
+  function doseFor(st: CravingState): NrtDoseEvent | null {
+    if (!st.nrtUsed) return null;
+    const at = st.nrtUsedAt ?? Date.now();
+    return { ...stamp(Date.now(), profile.tz), id: `${st.id}-nrt`, type: 'nrt_dose', at, kind: st.nrtUsed, mg: null, note: 'Durante uma vontade (SOS)' };
+  }
+
   async function persist(final: CravingState) {
     const ev = toCravingEvent(final, stamp(Date.now(), profile.tz).id, profile.tz, Date.now());
-    await addEvent(ev);
-    if (final.nrtUsed) {
-      // Dose confirmada pela pessoa, com o horário de agora; nunca inferida da estratégia escolhida.
-      await addEvent({ ...stamp(Date.now(), profile.tz), type: 'nrt_dose', at: Date.now(), kind: final.nrtUsed, mg: null, note: 'Durante uma vontade (SOS)' });
-    }
-    await updateSettings({ sosDraft: null });
+    await saveCravingSession(ev, doseFor(final)); // transação única; ids estáveis: repetir não duplica
   }
 
   async function finish(outcome: 'resisted' | 'slipped' | 'continued' | 'abandoned') {
@@ -105,7 +128,7 @@ function SosInner({ data }: { data: Data }) {
       }
     } catch (e) {
       console.error(e);
-      toast('Não consegui salvar.', 'err');
+      toast('Não consegui salvar. Toque de novo.', 'err');
       setSaving(false);
     }
   }
@@ -115,11 +138,32 @@ function SosInner({ data }: { data: Data }) {
     nav(-1);
   }
 
+  /** Rascunho antigo: encerra com o fim no último passo gravado, não agora. */
+  async function closeStale(mode: 'save' | 'discard' | 'resume') {
+    if (!stale) return;
+    try {
+      if (mode === 'save') {
+        await persist(cravingReducer(stale.state, { type: 'finish', now: stale.updatedAt, outcome: 'abandoned' }));
+        toast('Registro anterior encerrado.');
+      } else if (mode === 'discard') await updateSettings({ sosDraft: null });
+      else dispatch({ type: 'load', state: stale.state });
+      setStale(null);
+    } catch (e) {
+      console.error(e);
+      toast('Não consegui salvar. Toque de novo.', 'err');
+    }
+  }
+
   function pickStrategy(id: string) {
     const x = strategyById(id);
     dispatch({ type: 'setStrategy', strategy: id, now: Date.now(), durationSec: x.defaultSec });
     setPickerOpen(false);
     setReasonsOpen(false);
+  }
+
+  function openReasons() {
+    dispatch({ type: 'addAid', aid: 'reasons' }); // sessão combinada: sai da comparação por estratégia
+    setReasonsOpen(true);
   }
 
   const picker = (
@@ -137,9 +181,47 @@ function SosInner({ data }: { data: Data }) {
     </Sheet>
   );
 
+  const staleSheet = stale ? (
+    <Sheet open onClose={() => undefined} title="Você deixou um SOS aberto">
+      <div className="space-y-3">
+        <p className="text-ink-2">
+          Começou {formatDateTime(stale.state.startedAt, profile.tz)}, último passo às {formatTime(stale.updatedAt, profile.tz)}. O que fazer com esse registro?
+        </p>
+        <Button full size="lg" variant="primary" onClick={() => closeStale('save')} data-testid="stale-save">Encerrar o registro anterior</Button>
+        <Button full size="lg" onClick={() => closeStale('resume')} data-testid="stale-resume">Retomar esse episódio</Button>
+        <Button full variant="ghost" onClick={() => closeStale('discard')} data-testid="stale-discard">Descartar</Button>
+        <div className="text-[0.8rem] text-ink-3">Encerrar guarda o episódio como "encerrado sem avaliação final", terminando no último passo, não agora.</div>
+      </div>
+    </Sheet>
+  ) : null;
+
+  const nrtConfirm = nrtInSession ? (
+    <div className="card space-y-2 p-4" data-testid="sos-nrt-confirm">
+      <div className="font-semibold">Você usou a reposição nesta vontade?</div>
+      <div className="flex flex-wrap gap-2">
+        {([['gum', 'Goma'], ['lozenge', 'Pastilha'], ['patch', 'Adesivo'], ['other', 'Outro']] as const).map(([k, l]) => (
+          <Chip key={k} active={s.nrtUsed === k} onClick={() => dispatch({ type: 'setNrtUsed', kind: s.nrtUsed === k ? null : k, now: Date.now() })}>{l}</Chip>
+        ))}
+        <Chip active={s.nrtUsed === null} onClick={() => dispatch({ type: 'setNrtUsed', kind: null, now: Date.now() })}>Não usei</Chip>
+      </div>
+      {s.nrtUsed ? (
+        nrtTimeOpen ? (
+          <input type="datetime-local" className={inputCls} value={epochToLocalInput(s.nrtUsedAt ?? Date.now(), profile.tz)} onChange={(e) => dispatch({ type: 'setNrtUsedAt', at: localInputToEpoch(e.target.value, profile.tz) })} />
+        ) : (
+          <div className="text-[0.85rem] text-ink-2">
+            Dose às <span className="tabular font-semibold">{formatTime(s.nrtUsedAt ?? Date.now(), profile.tz)}</span>.{' '}
+            <button type="button" className="font-semibold text-accent" onClick={() => setNrtTimeOpen(true)}>Alterar horário</button>
+          </div>
+        )
+      ) : null}
+      <div className="text-[0.8rem] text-ink-3">Registrada como parte do tratamento, não como uso. Responder é opcional.</div>
+    </div>
+  ) : null;
+
   const closeSheet = (
     <Sheet open={closeOpen} onClose={() => setCloseOpen(false)} title="Fechar o SOS">
       <div className="space-y-2">
+        {nrtConfirm}
         <Button full size="lg" variant="primary" disabled={saving} onClick={() => finish('abandoned')} data-testid="sos-close-save">
           Salvar como encerrada sem avaliação final
         </Button>
@@ -150,19 +232,6 @@ function SosInner({ data }: { data: Data }) {
       </div>
     </Sheet>
   );
-
-  const nrtConfirm = nrtInSession ? (
-    <div className="card space-y-2 p-4" data-testid="sos-nrt-confirm">
-      <div className="font-semibold">Você usou a reposição nesta vontade?</div>
-      <div className="flex flex-wrap gap-2">
-        {([['gum', 'Goma'], ['lozenge', 'Pastilha'], ['patch', 'Adesivo'], ['other', 'Outro']] as const).map(([k, l]) => (
-          <Chip key={k} active={s.nrtUsed === k} onClick={() => dispatch({ type: 'setNrtUsed', kind: s.nrtUsed === k ? null : k })}>{l}</Chip>
-        ))}
-        <Chip active={s.nrtUsed === null} onClick={() => dispatch({ type: 'setNrtUsed', kind: null })}>Não usei</Chip>
-      </div>
-      <div className="text-[0.8rem] text-ink-3">Se confirmar, a dose é registrada agora como parte do tratamento, não como uso.</div>
-    </div>
-  ) : null;
 
   if (s.step === 'relief') {
     return (
@@ -184,7 +253,7 @@ function SosInner({ data }: { data: Data }) {
             <div className="w-full rounded-2xl bg-card-2 p-5 text-left" data-testid="sos-reasons">
               <Label>Meus motivos</Label>
               <ul className="mt-2 space-y-2 text-[1.1rem]">
-                {profile.reasons.length ? profile.reasons.map((r) => <li key={r}>• {r}</li>) : <li className="text-ink-3">Você ainda não escreveu motivos. Ajustes → Perfil.</li>}
+                {profile.reasons.map((r) => <li key={r}>• {r}</li>)}
               </ul>
             </div>
           ) : (
@@ -206,7 +275,7 @@ function SosInner({ data }: { data: Data }) {
           <div className="mt-5 flex gap-2">
             <Button size="sm" onClick={() => setPickerOpen(true)} data-testid="sos-switch">Trocar estratégia</Button>
             {profile.reasons.length ? (
-              <Button size="sm" variant="ghost" onClick={() => setReasonsOpen((v) => !v)} data-testid="sos-toggle-reasons">
+              <Button size="sm" variant="ghost" onClick={() => (reasonsOpen ? setReasonsOpen(false) : openReasons())} data-testid="sos-toggle-reasons">
                 {reasonsOpen ? 'Voltar à estratégia' : 'Ler meus motivos'}
               </Button>
             ) : null}
@@ -258,6 +327,7 @@ function SosInner({ data }: { data: Data }) {
         </div>
         {picker}
         {closeSheet}
+        {staleSheet}
       </div>
     );
   }
@@ -281,16 +351,17 @@ function SosInner({ data }: { data: Data }) {
               Definir uma pessoa de apoio
             </Link>
           )}
+          {nrtConfirm}
           <Button size="lg" full disabled={saving} onClick={() => finish('continued')} data-testid="sos-save-continued">
             Encerrar e salvar
           </Button>
           {profile.reasons.length ? (
-            <Button variant="ghost" full onClick={() => { dispatch({ type: 'backToRelief' }); setReasonsOpen(true); }}>
+            <Button variant="ghost" full onClick={() => { dispatch({ type: 'backToRelief' }); openReasons(); }}>
               Ler meus motivos
             </Button>
           ) : null}
         </div>
-        {support ? <div className="text-[0.8rem] text-ink-3">Abre o WhatsApp com a mensagem pronta; você decide se envia. Este episódio fica salvo enquanto isso.</div> : null}
+        {support ? <div className="text-[0.8rem] text-ink-3">Abre o WhatsApp com a mensagem pronta; você decide se envia. Precisa de rede. Este episódio fica salvo enquanto isso.</div> : null}
         {emergency.length ? (
           <div className="card space-y-1 p-4">
             <Label>Seu plano de emergência</Label>

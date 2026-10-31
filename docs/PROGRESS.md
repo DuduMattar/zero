@@ -85,32 +85,25 @@ Origem: `docs/BRIEF-GPT-ROUND2.md` + resposta do revisor, que usou o site public
 - `messages.pt-BR.ts` e `plan90.pt-BR.ts` reescritos com a tabela do revisor, encurtada: afirmação clínica delimitada a cigarro e com cautela (reposição: +50–60% segundo Cochrane, não "dobra"); instrução direta sem ressalva; nada presume estado; dia 3 sem "72 horas"; dia 80 cita marcos que existem (9 meses, 1 ano); dia 67 aponta para o campo que o SOS lê.
 Testes: 49 unitários, 9 ponta a ponta (inclui: rascunho sobrevive a recarregar, WhatsApp sem envio, fechar sem duplicar nem inventar dose, contraste computado).
 
+**3c · integridade (rodada 3 do revisor)**
+- Salvar o SOS é uma transação só (`saveCravingSession`): episódio + dose confirmada + limpeza do rascunho, com `put` e ids estáveis (`state.id`, dose `${id}-nrt`). Falha no meio não deixa metade gravada; repetir não duplica. Teste unitário com falha injetada.
+- Rascunho antigo (> 6 h desde o último passo) não é descartado nem retomado em silêncio: folha "Você deixou um SOS aberto" → encerrar (fim no último passo gravado, não agora) / retomar / descartar. Formato do rascunho: `{ state, updatedAt }`.
+- Pergunta de reposição em todas as saídas (Diminuiu, Continua, uso, Fechar) quando a estratégia esteve na sessão; responder é opcional; horário da dose = confirmação, editável.
+- "Ler meus motivos" entra em `strategies` como recurso combinado: a sessão sai da comparação por estratégia.
+- Testes ponta a ponta renomeados pelo que verificam: recarga do app e link preparado, **não** a suspensão real do iOS nem a abertura do WhatsApp. Fluxo com reposição coberto (sem dose ao escolher; uma dose ao confirmar, mesmo após troca e saída por "Continua"/"Fechar").
+Testes: 53 unitários, 10 ponta a ponta.
+
 ## Futuro — decisões tomadas em 31/10/2026
 
 - **Chat com IA: adiado.** Decisão do usuário: pode virar recurso pago para terceiros no lançamento; por enquanto, não. Quando entrar, exige servidor (chave da API nunca no aparelho de terceiros; cobrança e controle de uso), ou seja, o ZERO deixa de ser "sem backend" nesse dia. Para uso pessoal antes disso, a alternativa é chave própria colada em Ajustes (só no aparelho), opt-in, com aviso de que os dados saem do aparelho. Requisitos já definidos: contexto compacto (dias, produtos, lapsos recentes, motivos, gatilhos), regras fixas (nada causal, nada de culpa, nada de dose, SAMU 192 e CVV 188 em crise), bateria de ~20 mensagens de vontade antes de ligar.
-- **Candidatas gratuitas e offline, em ordem:** áudio gravado pelo próprio usuário para tocar no SOS; "pedir ajuda" em um toque (WhatsApp com mensagem pronta para pessoa de confiança); botão que gera a automação do Atalhos nos horários de pico.
+- **Pedir ajuda: entregue em 31/10** (pessoa de apoio no Perfil; abre o WhatsApp com mensagem pronta; exige rede e o app do WhatsApp, não é offline).
+- **Próximas candidatas, em ordem:** (1) guia de automações do Atalhos **por evento** (etiqueta NFC, abrir um app, conectar ao carro), já que os gatilhos do usuário são por evento, não por hora; é um guia, não instalação automática; (2) áudio gravado pelo próprio usuário para tocar no SOS, testado antes com uma gravação no próprio iPhone. Nenhuma das duas tem evidência direta; são hipóteses de utilidade.
 - **Descartado:** modelo rodando no iPhone (instável em PWA), chat sem contexto, "IA" por regras fingindo conversa.
 
-## V2 — restante (entrega 3)
-Relatório PDF via impressão, carta para o futuro, esportes (entrada manual), som opcional no SOS, "ver mensagens anteriores".
+## V2 — pendente
 
-### Correções de experiência (pedidas pelo usuário)
-1. **Consumo sem conta de cabeça.** Pergunta por produto, na unidade em que a pessoa pensa: pod → "um pod dura quantos dias?" ou "quantos pods por semana?"; cigarro → "maços por dia" ou "cigarros por dia"; tabaco enrolado → "pacotes por semana"; sachê → "latas por semana". Chips com valores típicos (ex.: 1 pod a cada 3 dias) e campo livre. Preço na mesma unidade (preço do pod, do maço, do pacote). O app converte para unidades/dia e mostra na hora: "≈ R$ 180 por mês". Opção "não sei" que desliga o dinheiro sem travar o onboarding. Mesmo componente em Ajustes.
-2. **Respiro e uso da tela inteira.** Escala de espaçamento maior (16–24 px), hero do painel mais alto, cards com mais padding e tipografia maior, nada de "caber tudo acima da dobra". Telas curtas (onboarding, SOS de saída, pós-lapso) centralizam o conteúdo em vez de deixar o terço inferior vazio. Painel reorganizado em três abas (Agora / Tendências / Histórico) como no benchmarking, com estatísticas e gráficos em Tendências, para o "Agora" ter só: SOS, número principal, trilhas e mensagem do dia.
+Relatório PDF via impressão, carta para o futuro, esportes (entrada manual), som opcional no SOS (sem vibração: API indisponível no iOS Safari), "ver mensagens anteriores", `.ics` com marcos para o Calendário.
 
-### Conteúdo e módulos (ordem)
-3. Linha do tempo de recuperação com fonte, rótulo de evidência e aviso para vape.
-4. Mensagem do dia ancorada na data de parada (dia −7 a +90) + guia do Atalhos + `.ics`.
-5. Tendências: gráficos de fissuras/semana, intensidade média, humor, sono, estratégias (limiares de amostra).
-6. Conquistas sóbrias (marcos de tempo + comportamento: primeira vontade superada, 7 diários seguidos, primeiro backup).
-7. Plano de 90 dias em 4 fases, uma atividade curta por dia.
-8. Dinheiro: objetivos e simulador de 5 anos.
-9. Módulo NRT: registro de doses, lembrete via Atalhos, orientação PCDT/INCA.
-10. Plano de emergência, motivos com edição rica, carta para o futuro, revisão semanal, modo discreto, relatórios CSV/PDF, esportes (entrada manual).
+## Histórico do plano V2 (concluído; mantido como referência)
 
-### Melhorias menores
-- Editar produtos e perfil depois do onboarding.
-- "Registrar lapso" menos proeminente que o SOS no painel.
-- Som opcional no SOS (sem vibração: API indisponível no iOS Safari).
-- Suporte a Dynamic Type (tamanho de fonte do sistema).
-- Marco de recuperação do dia no painel ("hoje seu corpo…").
+Consumo em unidades do usuário; três abas e respiro; linha do tempo com fontes; mensagem do dia; Tendências; conquistas; plano de 90 dias; dinheiro e objetivos; NRT com doses; plano de emergência, motivos, revisão semanal, modo discreto, CSV; perfil editável; Dynamic Type. O marco "hoje seu corpo…" foi substituído por "Referência de recuperação" (média de estudos, sem medição individual).

@@ -1,6 +1,6 @@
 # ZERO
 
-Assistente pessoal para parar de fumar (cigarro, vape/pod, tabaco e nicotina). PWA offline-first, dados só no aparelho, custo zero.
+App pessoal para parar de fumar (cigarro, vape/pod, tabaco e nicotina). Não é assistente nem IA: é registro, contador honesto e SOS. PWA offline-first, dados só no aparelho, custo zero.
 
 - **App:** https://dudumattar.github.io/zero/
 - **Uso pessoal.** Sem conta, sem servidor, sem anúncios, sem IA paga.

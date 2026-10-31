@@ -21,7 +21,7 @@ export default defineConfig({
       manifest: {
         name: 'ZERO',
         short_name: 'ZERO',
-        description: 'Seu assistente pessoal para parar de fumar.',
+        description: 'Para parar de fumar. Dados só no seu aparelho.',
         lang: 'pt-BR',
         display: 'standalone',
         start_url: './',

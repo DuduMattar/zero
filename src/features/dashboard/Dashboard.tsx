@@ -120,7 +120,7 @@ export function Dashboard() {
         </Card>
       )}
 
-      {!preparing && !relapsing ? <PlanCard day={day} events={events} tz={profile.tz} /> : null}
+      {!relapsing ? <PlanCard day={day} events={events} tz={profile.tz} /> : null}
       {isSunday(now, profile.tz) && events.length > 0 ? <ReviewCard events={events} now={now} /> : null}
 
       {!preparing && !relapsing && (tl.current || tl.next) ? (

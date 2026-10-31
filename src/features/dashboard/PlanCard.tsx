@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { addEvent, deleteEvent, stamp } from '../../data/repos';
 import { activityForDay } from '../../content/plan90.pt-BR';
 import { PHASE_LABEL, phaseOf } from '../../domain/program';
@@ -35,7 +36,10 @@ export function PlanCard({ day, events, tz, now }: { day: number; events: AppEve
           {canUndo ? <Button size="sm" variant="ghost" onClick={undo} data-testid="plan-undo">Desfazer</Button> : null}
         </div>
       ) : (
-        <Button variant="secondary" onClick={mark} data-testid="plan-done">Marcar como feito</Button>
+        <div className="flex gap-2">
+          {a.to ? <Link to={a.to} className="press inline-flex min-h-12 flex-1 items-center justify-center rounded-2xl bg-accent/15 px-4 text-[15px] font-semibold text-accent select-none" data-testid="plan-open">Abrir</Link> : null}
+          <Button variant="secondary" className="flex-1" onClick={mark} data-testid="plan-done">Marcar como feito</Button>
+        </div>
       )}
     </Card>
   );

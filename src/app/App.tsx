@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect } from 'react';
+import { Suspense, lazy, useEffect, type ReactNode } from 'react';
 import { HashRouter, Navigate, NavLink, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useProfile, useSettings } from '../data/queries';
 import { Providers } from './providers';
@@ -15,6 +15,7 @@ import { BackupPage } from '../features/settings/BackupPage';
 import { InstallPage } from '../features/settings/InstallPage';
 import { ProfilePage } from '../features/settings/ProfilePage';
 import { AchievementWatcher } from './AchievementWatcher';
+import { IconList, IconNow, IconTrend } from '../ui/icons';
 
 const DEEP_LINKS: Record<string, string> = { sos: '/sos', diary: '/diario', diario: '/diario', backup: '/ajustes/backup', lapso: '/lapso', slip: '/lapso', history: '/historico', historico: '/historico', tendencias: '/tendencias', today: '/', hoje: '/' };
 
@@ -30,10 +31,10 @@ function DeepLink() {
   return null;
 }
 
-function Tab({ to, label, icon }: { to: string; label: string; icon: string }) {
+function Tab({ to, label, icon }: { to: string; label: string; icon: ReactNode }) {
   return (
-    <NavLink to={to} end={to === '/'} className={({ isActive }) => `flex min-h-[56px] flex-col items-center justify-center gap-0.5 rounded-xl text-[0.7rem] font-semibold ${isActive ? 'text-accent' : 'text-ink-3'}`}>
-      <span aria-hidden className="text-[1.35rem] leading-none">{icon}</span>
+    <NavLink to={to} end={to === '/'} className={({ isActive }) => `flex min-h-[56px] flex-col items-center justify-center gap-1 rounded-xl text-[0.7rem] font-semibold ${isActive ? 'text-accent' : 'text-ink-3'}`}>
+      {icon}
       {label}
     </NavLink>
   );
@@ -51,9 +52,9 @@ function Shell() {
       {!hideTabs ? (
         <nav aria-label="Seções" className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/90 backdrop-blur">
           <div className="mx-auto grid max-w-lg grid-cols-3 gap-1 px-4 pt-1.5 pb-1.5">
-            <Tab to="/" label="Agora" icon="◎" />
-            <Tab to="/tendencias" label="Tendências" icon="∿" />
-            <Tab to="/historico" label="Histórico" icon="≡" />
+            <Tab to="/" label="Agora" icon={<IconNow />} />
+            <Tab to="/tendencias" label="Tendências" icon={<IconTrend />} />
+            <Tab to="/historico" label="Histórico" icon={<IconList />} />
           </div>
         </nav>
       ) : null}

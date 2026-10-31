@@ -36,7 +36,7 @@ export function Trends() {
   const tip = { contentStyle: { background: css('--c-card'), border: `1px solid ${css('--c-line')}`, borderRadius: 12, fontSize: 12 }, labelStyle: { color: ink3 } };
 
   return (
-    <div className="stagger space-y-6">
+    <div className="space-y-8">
       <header>
         <h1 className="text-[1.75rem] font-bold leading-tight">Tendências</h1>
         <div className="text-[0.85rem] text-ink-3">Descritivo, a partir dos seus registros. Nunca uma afirmação de causa.</div>

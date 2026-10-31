@@ -6,10 +6,10 @@ export async function shareProgress(opts: { days: number; best: string; since: s
   c.width = W;
   c.height = H;
   const ctx = c.getContext('2d')!;
-  const bg = opts.dark ? '#0a0d12' : '#f5f6f8';
-  const ink = opts.dark ? '#eef2f6' : '#0e1217';
-  const ink2 = opts.dark ? '#aab4c0' : '#4b5563';
-  const accent = opts.dark ? '#2fd38a' : '#0f9d6e';
+  const bg = opts.dark ? '#111b19' : '#f4f0e7';
+  const ink = opts.dark ? '#f4f0e7' : '#202b2a';
+  const ink2 = opts.dark ? '#c2cec2' : '#465a55';
+  const accent = opts.dark ? '#b8d99a' : '#275e50';
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
   // anel
@@ -20,20 +20,20 @@ export async function shareProgress(opts: { days: number; best: string; since: s
   ctx.stroke();
   ctx.fillStyle = ink;
   ctx.textAlign = 'center';
-  ctx.font = '700 180px Inter, -apple-system, system-ui, sans-serif';
+  ctx.font = '700 180px "Manrope Variable", Manrope, -apple-system, system-ui, sans-serif';
   ctx.fillText(String(opts.days), W / 2, 485);
-  ctx.font = '600 44px Inter, -apple-system, system-ui, sans-serif';
+  ctx.font = '600 44px "Manrope Variable", Manrope, -apple-system, system-ui, sans-serif';
   ctx.fillStyle = ink2;
   ctx.fillText(opts.days === 1 ? 'dia livre' : 'dias livres', W / 2, 560);
   ctx.fillStyle = ink;
-  ctx.font = '700 64px Inter, -apple-system, system-ui, sans-serif';
+  ctx.font = '700 64px "Manrope Variable", Manrope, -apple-system, system-ui, sans-serif';
   ctx.fillText('sem tabaco ou vape', W / 2, 780);
   ctx.fillStyle = ink2;
-  ctx.font = '500 40px Inter, -apple-system, system-ui, sans-serif';
+  ctx.font = '500 40px "Manrope Variable", Manrope, -apple-system, system-ui, sans-serif';
   ctx.fillText(`Recorde: ${opts.best}`, W / 2, 870);
   ctx.fillText(`Desde ${opts.since}`, W / 2, 930);
   ctx.fillStyle = accent;
-  ctx.font = '800 44px Inter, -apple-system, system-ui, sans-serif';
+  ctx.font = '800 44px "Manrope Variable", Manrope, -apple-system, system-ui, sans-serif';
   ctx.letterSpacing = '12px';
   ctx.fillText('ZERO', W / 2, 1230);
 

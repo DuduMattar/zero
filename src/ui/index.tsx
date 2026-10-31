@@ -36,7 +36,7 @@ export function Card({ children, className = '', tone = 'default', ...rest }: Re
 }
 
 export function Label({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-3 ${className}`}>{children}</div>;
+  return <div className={`display text-[0.72rem] font-bold uppercase tracking-[0.14em] text-ink-3 ${className}`}>{children}</div>;
 }
 
 export function Stat({ label, value, sub, big }: { label: string; value: ReactNode; sub?: ReactNode; big?: boolean }) {

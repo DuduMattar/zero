@@ -51,7 +51,17 @@ Feito:
 - "Plano de hoje" → "Uma ação para hoje"; "Como foi hoje?"/"Diário" → "Como você está"; "Registrar lapso" → "Registrar um uso"; estratégias "Esperar antes de decidir", "Notar a vontade, sem agir", "Ler meus motivos".
 - Mensagens dos dias 1 (ciente de reposição de nicotina), 14, 30 e 60 reescritas sem estatística sem fonte. Texto pós-uso sem prometer relógio fisiológico.
 Testes: 49 unitários, 8 ponta a ponta (SOS: linha de base, continua + troca, sessão sem linha de base, uso pelo SOS com histórico preservado).
-Pendente (entrega 2 da V3): identidade visual (paleta, Manrope + Source Sans 3, hierarquia sem card por linha, ícone de olho no lugar do ◎, calendário com símbolo).
+
+## V3 — entrega 2 (identidade visual) publicada em 31/10/2026
+
+Direção "espaço para seguir" (revisão externa; contrastes AA recalculados e conferidos): fundo mineral quente no claro, verde profundo no escuro, destaque em verde seco. Tokens em `src/app/styles.css`.
+- Tipografia: Manrope Variable (títulos, números, rótulos; `.display`/`.tabular`) + Source Sans 3 Variable (texto). Self-hosted, OFL, só subconjuntos latinos (4 arquivos woff2, ~130 kB), no cache do service worker.
+- Hierarquia: número principal e trilhas sobre o fundo da página, sem card; cards de 20 px só para ação, referência, mensagem e humor. Entrada escalonada removida.
+- Ícones vetoriais únicos (`src/ui/icons.tsx`): olho/olho cortado para o modo discreto, engrenagem, abas. Sem emojis decorativos: humor rápido mostra 1–5 com rótulo.
+- Calendário com símbolo além da cor (• lapso, — recaída) e legenda.
+- SOS: cronômetro pequeno no topo, instrução dominante, círculo de respiração em `calm`; escala inicial com "opcional" e âncoras.
+- Ícone do app, `theme-color`, manifest e imagem de compartilhar nas cores novas.
+Testes: 49 unitários, 8 ponta a ponta. Capturas claro/escuro conferidas no Chrome emulando iPhone 13; não testado em iPhone real.
 
 ## V2 — restante (entrega 3)
 Relatório PDF via impressão, carta para o futuro, esportes (entrada manual), som opcional no SOS, "ver mensagens anteriores".

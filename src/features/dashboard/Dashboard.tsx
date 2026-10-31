@@ -9,6 +9,7 @@ import { timelinePosition, EVIDENCE_LABEL } from '../../domain/timeline';
 import type { TrackId } from '../../domain/types';
 import { Button, Card, Label, Progress, useToast } from '../../ui';
 import { PlanCard } from './PlanCard';
+import { IconEye, IconEyeOff, IconGear } from '../../ui/icons';
 import { PRODUCTS, type ProductId } from '../../domain/types';
 import { ReviewCard } from '../trends/ReviewCard';
 import { shareProgress } from '../../app/share';
@@ -17,11 +18,11 @@ import { isSunday } from '../../domain/review';
 
 const TRACK_LABEL: Record<TrackId, string> = { tobaccoOrVape: 'Sem tabaco ou vape', combustion: 'Sem cigarro', vape: 'Sem vape', nicotine: 'Sem nicotina' };
 const MOODS = [
-  { v: 1, e: '😣', l: 'péssimo' },
-  { v: 2, e: '😕', l: 'ruim' },
-  { v: 3, e: '😐', l: 'ok' },
-  { v: 4, e: '🙂', l: 'bem' },
-  { v: 5, e: '😄', l: 'ótimo' },
+  { v: 1, l: 'péssimo' },
+  { v: 2, l: 'ruim' },
+  { v: 3, l: 'ok' },
+  { v: 4, l: 'bem' },
+  { v: 5, l: 'ótimo' },
 ];
 
 function TrackRow({ t }: { t: TrackResult }) {
@@ -59,19 +60,19 @@ export function Dashboard() {
   const totalDays = wholeDays(main.totalFreeMs);
 
   return (
-    <div className="stagger space-y-6">
+    <div className="space-y-8">
       <header className="flex items-start justify-between">
         <div>
-          <div className="text-[0.75rem] font-semibold uppercase tracking-[0.2em] text-accent">ZERO</div>
+          <div className="display text-[0.8rem] font-bold tracking-[0.3em] text-accent">ZERO</div>
           <h1 className="mt-1 text-[1.75rem] font-bold leading-tight">{greeting}.</h1>
           <div className="text-[0.85rem] text-ink-3">{formatDate(now, profile.tz)} · {day >= 0 ? `dia ${day}` : `${-day} ${-day === 1 ? 'dia' : 'dias'} para o dia zero`}</div>
         </div>
         <div className="flex gap-2">
-          <button type="button" aria-label={settings.discreetMode ? 'Mostrar números' : 'Modo discreto'} aria-pressed={settings.discreetMode} onClick={() => updateSettings({ discreetMode: !settings.discreetMode })} className={`press flex h-11 w-11 items-center justify-center rounded-full text-lg ${settings.discreetMode ? 'bg-accent/20 text-accent' : 'bg-card-2'}`} data-testid="discreet">
-            {settings.discreetMode ? '◉' : '◎'}
+          <button type="button" aria-label={settings.discreetMode ? 'Mostrar números' : 'Modo discreto'} aria-pressed={settings.discreetMode} onClick={() => updateSettings({ discreetMode: !settings.discreetMode })} className={`press flex h-11 w-11 items-center justify-center rounded-full ${settings.discreetMode ? 'bg-accent/20 text-accent' : 'bg-card-2 text-ink-2'}`} data-testid="discreet">
+            {settings.discreetMode ? <IconEyeOff /> : <IconEye />}
           </button>
-          <Link to="/ajustes" aria-label="Ajustes" className="press flex h-11 w-11 items-center justify-center rounded-full bg-card-2 text-xl">
-            ⚙
+          <Link to="/ajustes" aria-label="Ajustes" className="press flex h-11 w-11 items-center justify-center rounded-full bg-card-2 text-ink-2">
+            <IconGear />
           </Link>
         </div>
       </header>
@@ -93,20 +94,20 @@ export function Dashboard() {
           <p className="text-ink-2">até o dia zero. Use o SOS para treinar, registre vontades e limpe o ambiente.</p>
         </Card>
       ) : (
-        <Card className="p-6">
+        <section className="px-1">
           <div className="flex items-end gap-3">
-            <div className="tabular sensitive text-[4rem] font-bold leading-[0.9]" data-testid="total-days">{totalDays}</div>
+            <div className="display tabular sensitive text-[4.5rem] font-bold leading-[0.9]" data-testid="total-days">{totalDays}</div>
             <div className="pb-1 leading-tight">
-              <div className="text-[1.1rem] font-semibold">{totalDays === 1 ? 'dia' : 'dias'} {what}</div>
-              <div className="text-[0.85rem] text-ink-3">somados entre seus períodos</div>
+              <div className="display text-[1.15rem] font-bold">{totalDays === 1 ? 'dia' : 'dias'} {what}</div>
+              <div className="text-[0.9rem] text-ink-3">somados entre seus períodos</div>
             </div>
           </div>
-          <div className="mt-5 space-y-2 border-t border-line pt-4 text-[1rem]">
-            <div className="flex justify-between gap-3">
+          <div className="mt-5 divide-y divide-line border-t border-line text-[1rem]">
+            <div className="flex justify-between gap-3 py-2.5">
               <span className="text-ink-2">Agora</span>
               <span className="tabular sensitive text-right font-semibold">há {humanDuration(main.currentMs)} desde o último uso</span>
             </div>
-            <div className="flex justify-between gap-3">
+            <div className="flex justify-between gap-3 py-2.5">
               <span className="text-ink-2">Maior período contínuo</span>
               <span className="tabular sensitive font-semibold">{humanDuration(Math.max(main.bestMs, bestFromHistory))}</span>
             </div>
@@ -120,9 +121,9 @@ export function Dashboard() {
               if (r === 'downloaded') toast('Imagem salva.');
             }}
           >
-            Compartilhar progresso →
+            Compartilhar progresso
           </button>
-        </Card>
+        </section>
       )}
 
       {!relapsing ? <PlanCard day={day} events={events} tz={profile.tz} now={now} /> : null}
@@ -182,16 +183,16 @@ export function Dashboard() {
         ) : (
           <div className="grid grid-cols-5 gap-2">
             {MOODS.map((m) => (
-              <button key={m.v} type="button" onClick={() => nav(`/diario?mood=${m.v}`)} className="press flex min-h-16 flex-col items-center justify-center gap-1 rounded-2xl bg-card-2 text-2xl" aria-label={`Humor ${m.l}`}>
-                <span aria-hidden>{m.e}</span>
-                <span className="text-[0.65rem] font-semibold text-ink-3">{m.l}</span>
+              <button key={m.v} type="button" onClick={() => nav(`/diario?mood=${m.v}`)} className="press flex min-h-16 flex-col items-center justify-center gap-1 rounded-2xl bg-card-2" aria-label={`Humor ${m.l}`}>
+                <span aria-hidden className="display text-[1.3rem] font-bold text-ink">{m.v}</span>
+                <span className="text-[0.7rem] font-semibold text-ink-3">{m.l}</span>
               </button>
             ))}
           </div>
         )}
       </Card>
 
-      <Card className="p-6">
+      <section className="px-1">
         <Label className="mb-1">Trilhas</Label>
         <div>
           {(['combustion', 'vape', 'nicotine'] as TrackId[]).map((id) => (
@@ -199,7 +200,7 @@ export function Dashboard() {
           ))}
         </div>
         <div className="mt-3 border-t border-line pt-3 text-[0.85rem] text-ink-3">{resisted} {resisted === 1 ? 'vontade superada' : 'vontades superadas'} · {main.slipCount} {main.slipCount === 1 ? 'lapso' : 'lapsos'}</div>
-      </Card>
+      </section>
 
       {backupDue ? (
         <Card tone="warn" className="flex items-center justify-between gap-3 p-5">

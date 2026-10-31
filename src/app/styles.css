@@ -1,10 +1,43 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/inter';
+/* Fontes self-hosted (OFL), só latim e latim estendido: funcionam offline e entram no cache do service worker. */
+@font-face {
+  font-family: 'Manrope Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('@fontsource-variable/manrope/files/manrope-latin-ext-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Manrope Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('@fontsource-variable/manrope/files/manrope-latin-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+  font-family: 'Source Sans 3 Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 900;
+  src: url('@fontsource-variable/source-sans-3/files/source-sans-3-latin-ext-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Source Sans 3 Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 900;
+  src: url('@fontsource-variable/source-sans-3/files/source-sans-3-latin-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: 'Source Sans 3 Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: 'Manrope Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
   --color-bg: var(--c-bg);
   --color-bg-2: var(--c-bg-2);
   --color-card: var(--c-card);
@@ -22,35 +55,36 @@
 
 :root {
   color-scheme: light;
-  --c-bg: #f5f6f8;
-  --c-bg-2: #ebedf1;
-  --c-card: #ffffff;
-  --c-card-2: #f1f3f6;
-  --c-line: #e2e5ea;
-  --c-ink: #0e1217;
-  --c-ink-2: #4b5563;
-  --c-ink-3: #8b94a1;
-  --c-accent: #0f9d6e;
+  /* "espaço para seguir": mineral quente no claro, verde profundo no escuro. Contrastes AA conferidos. */
+  --c-bg: #f4f0e7;
+  --c-bg-2: #eae5da;
+  --c-card: #fffcf5;
+  --c-card-2: #eae5da;
+  --c-line: #d4d9cf;
+  --c-ink: #202b2a;
+  --c-ink-2: #465a55;
+  --c-ink-3: #596961;
+  --c-accent: #275e50;
   --c-accent-ink: #ffffff;
-  --c-warn: #b7791f;
-  --c-danger: #c53d3d;
-  --c-calm: #2f6fdb;
+  --c-warn: #795611;
+  --c-danger: #a33834;
+  --c-calm: #355f79;
 }
 .dark {
   color-scheme: dark;
-  --c-bg: #0a0d12;
-  --c-bg-2: #10151c;
-  --c-card: #141a22;
-  --c-card-2: #1b222c;
-  --c-line: #232c37;
-  --c-ink: #eef2f6;
-  --c-ink-2: #aab4c0;
-  --c-ink-3: #6f7a87;
-  --c-accent: #2fd38a;
-  --c-accent-ink: #052416;
-  --c-warn: #e4b35a;
-  --c-danger: #f06b6b;
-  --c-calm: #6ea3ff;
+  --c-bg: #111b19;
+  --c-bg-2: #16221d;
+  --c-card: #1a2823;
+  --c-card-2: #26352d;
+  --c-line: #3c5145;
+  --c-ink: #f4f0e7;
+  --c-ink-2: #c2cec2;
+  --c-ink-3: #a7b6a8;
+  --c-accent: #b8d99a;
+  --c-accent-ink: #17221b;
+  --c-warn: #e8c17b;
+  --c-danger: #f2a39a;
+  --c-calm: #a6c7de;
 }
 
 /* Dynamic Type no iOS: herda o tamanho de fonte do sistema; o resto escala em rem. */
@@ -71,23 +105,25 @@ body {
 }
 body {
   font-family: var(--font-sans);
-  font-size: 1rem;
-  line-height: 1.45;
-  font-feature-settings: 'cv11', 'ss01', 'tnum';
+  font-size: 1.0625rem;
+  line-height: 1.5;
   min-height: 100dvh;
 }
+/* Títulos e números grandes em Manrope; texto corrido em Source Sans 3. */
+h1, h2, .display { font-family: var(--font-display); letter-spacing: -0.01em; }
+.display, .tabular { font-variant-numeric: lining-nums tabular-nums; }
+.tabular { font-family: var(--font-display); }
 button, input, select, textarea { font: inherit; color: inherit; }
 input, select, textarea { font-size: max(16px, 1rem); }
 
 .safe-top { padding-top: env(safe-area-inset-top); }
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
-.tabular { font-variant-numeric: tabular-nums; }
 .card {
   background: var(--c-card);
   border: 1px solid var(--c-line);
-  border-radius: 24px;
+  border-radius: 20px;
 }
-.press { transition: transform 120ms ease, opacity 120ms ease; }
+.press { transition: transform 140ms ease, opacity 140ms ease, background-color 140ms ease; }
 .press:active { transform: scale(0.98); }
 
 .skeleton {
@@ -108,25 +144,23 @@ input, select, textarea { font-size: max(16px, 1rem); }
 .breathe { animation: breathe 14s ease-in-out infinite; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .fade-up { animation: fadeUp 280ms ease both; }
-.stagger > * { animation: fadeUp 280ms ease both; }
-.stagger > *:nth-child(2) { animation-delay: 40ms; }
-.stagger > *:nth-child(3) { animation-delay: 80ms; }
-.stagger > *:nth-child(4) { animation-delay: 120ms; }
-.stagger > *:nth-child(5) { animation-delay: 160ms; }
-.stagger > *:nth-child(n + 6) { animation-delay: 200ms; }
 
 @media (prefers-reduced-motion: reduce) {
-  .breathe, .fade-up, .stagger > *, .skeleton { animation: none !important; }
+  .breathe, .fade-up, .skeleton { animation: none !important; }
   .press { transition: none; }
 }
-.motion-off .breathe, .motion-off .fade-up, .motion-off .stagger > *, .motion-off .skeleton { animation: none !important; }
+.motion-off .breathe, .motion-off .fade-up, .motion-off .skeleton { animation: none !important; }
 
 /* Calendário de dias */
 .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-.cal > div { aspect-ratio: 1; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+.cal > div { position: relative; aspect-ratio: 1; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; font-family: var(--font-display); font-variant-numeric: tabular-nums; }
 .cal .free { background: var(--c-accent); color: var(--c-accent-ink); }
-.cal .slip { background: var(--c-warn); color: #2b1d00; }
-.cal .relapse { background: var(--c-line); color: var(--c-ink-3); }
+.cal .slip { background: var(--c-warn); color: #1f1600; }
+.cal .relapse { background: var(--c-line); color: var(--c-ink-2); }
+/* símbolo além da cor: lapso = ponto, recaída = traço */
+.cal .slip::after, .cal .relapse::after { position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); font-size: 0.6rem; line-height: 1; }
+.cal .slip::after { content: '•'; }
+.cal .relapse::after { content: '—'; }
 .cal .before, .cal .future { background: transparent; color: var(--c-ink-3); border: 1px dashed var(--c-line); }
 
 /* Modo discreto */

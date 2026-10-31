@@ -72,7 +72,7 @@ export function History() {
   }
 
   return (
-    <div className="stagger space-y-6">
+    <div className="space-y-8">
       <header>
         <h1 className="text-[1.75rem] font-bold leading-tight">Histórico</h1>
         <div className="text-[0.85rem] text-ink-3">Tudo fica. Registros são permanentes.</div>
@@ -91,7 +91,7 @@ export function History() {
       <Card className="p-6">
         <div className="flex items-center justify-between">
           <Label>Últimos 28 dias</Label>
-          <div className="flex gap-3 text-[0.7rem] text-ink-3"><span><i className="inline-block h-2 w-2 rounded-sm bg-accent" /> livre</span><span><i className="inline-block h-2 w-2 rounded-sm bg-warn" /> lapso</span><span><i className="inline-block h-2 w-2 rounded-sm bg-line" /> recaída</span></div>
+          <div className="flex gap-3 text-[0.7rem] text-ink-3"><span><i className="inline-block h-2 w-2 rounded-sm bg-accent" /> livre</span><span><i className="inline-block h-2 w-2 rounded-sm bg-warn" /> • lapso</span><span><i className="inline-block h-2 w-2 rounded-sm bg-line" /> — recaída</span></div>
         </div>
         <div className="cal mt-3" role="img" aria-label="Calendário dos últimos 28 dias">
           {cal.map((d) => (

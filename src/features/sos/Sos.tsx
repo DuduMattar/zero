@@ -47,6 +47,9 @@ export function Sos() {
   const ordered = best ? [strategyById(best.strategy), ...available.filter((x) => x.id !== best.strategy)] : [...available];
   const baselineOpen = s.intensityBefore == null && elapsed <= BASELINE_WINDOW_SEC;
   const emergency = data.profile.goals.filter((g) => /^se eu/i.test(g));
+  const hasVape = data.profile.products.includes('vape');
+  const hasSmoke = data.profile.products.some((id) => id !== 'vape' && id !== 'pouch');
+  const usedLabel = hasVape && !hasSmoke ? 'Vapei' : hasSmoke && !hasVape ? 'Fumei' : 'Fumei/vapei';
 
   async function finish(outcome: 'resisted' | 'slipped' | 'continued') {
     setSaving(true);
@@ -146,9 +149,12 @@ export function Sos() {
         <div className="space-y-3">
           {baselineOpen ? (
             <div className="card p-3" data-testid="sos-baseline">
-              <Label>Quanto está a vontade agora? (opcional, 0 = nada, 10 = insuportável)</Label>
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="font-semibold">Quanto está a vontade agora?</span>
+                <span className="text-[0.75rem] text-ink-3">opcional</span>
+              </div>
               <div className="mt-2">
-                <Scale ariaLabel="Vontade ao começar" value={null} onChange={(v) => dispatch({ type: 'rateBefore', now: Date.now(), intensity: v })} />
+                <Scale ariaLabel="Vontade ao começar" value={null} labels={['nada', 'insuportável']} onChange={(v) => dispatch({ type: 'rateBefore', now: Date.now(), intensity: v })} />
               </div>
             </div>
           ) : rateOpen ? (
@@ -181,8 +187,8 @@ export function Sos() {
             <Button size="lg" onClick={() => dispatch({ type: 'toExit', now: Date.now(), outcome: 'continued' })} data-testid="sos-continue">
               Continua
             </Button>
-            <Button size="lg" onClick={() => dispatch({ type: 'toExit', now: Date.now(), outcome: 'slipped' })} data-testid="sos-smoked">
-              Fumei / vapei
+            <Button size="lg" className={usedLabel.length > 6 ? 'px-2 text-[0.9rem]' : ''} onClick={() => dispatch({ type: 'toExit', now: Date.now(), outcome: 'slipped' })} data-testid="sos-smoked">
+              {usedLabel}
             </Button>
           </div>
         </div>

@@ -17,7 +17,7 @@ function applyTheme(theme: 'system' | 'dark' | 'light', reduced: 'system' | 'on'
   root.classList.toggle('motion-off', reduced === 'on');
   root.classList.toggle('discreet', discreet);
   const meta = document.querySelector('meta[name="theme-color"]:not([media])');
-  if (meta) meta.setAttribute('content', dark ? '#0b0f14' : '#f6f7f9');
+  if (meta) meta.setAttribute('content', dark ? '#111b19' : '#f4f0e7');
 }
 
 export function Providers({ children }: { children: ReactNode }) {

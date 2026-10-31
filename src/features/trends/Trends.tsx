@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useData } from '../../app/hooks/useData';
 import { ACHIEVEMENTS } from '../../domain/achievements';
-import { BASELINE_WINDOW_SEC, strategyEffectiveness } from '../../domain/craving';
+import { strategyEffectiveness } from '../../domain/craving';
 import { formatMoney } from '../../domain/format';
 import { projectSavings } from '../../domain/money';
 import { avgDropOverall, cravingsByHour, dailySeries, topTriggers } from '../../domain/stats';
@@ -50,7 +50,7 @@ export function Trends() {
             <div className="tabular text-[2rem] font-bold leading-none">{totalCr}</div>
           </div>
           <div className="text-right text-[0.85rem] text-ink-2">
-            {series.reduce((a, p) => a + p.resisted, 0)} superadas
+            {series.reduce((a, p) => a + p.resisted, 0)} sem uso
             {drop.avg != null ? <><br />queda média {drop.avg.toFixed(1)} pts ({drop.n} medidas)</> : null}
           </div>
         </div>
@@ -121,15 +121,15 @@ export function Trends() {
           <ul className="mt-2 divide-y divide-line">
             {strategies.map((s) => (
               <li key={s.strategy} className="flex items-center justify-between py-2.5 text-[0.95rem]">
-                <span>{strategyById(s.strategy).label} <span className="text-ink-3">· {s.n}× · {s.measured} {s.measured === 1 ? 'medida' : 'medidas'}</span></span>
-                <span className={`tabular font-semibold ${s.sufficient ? 'text-accent' : 'text-ink-3'}`}>{s.avgDrop != null ? `−${s.avgDrop.toFixed(1)}` : '—'}{!s.sufficient ? ' ·' : ''}</span>
+                <span>{strategyById(s.strategy).label} <span className="text-ink-3">· {s.n} {s.n === 1 ? 'sessão' : 'sessões'} · {s.withoutUse} sem uso</span></span>
+                <span className={`tabular text-right ${s.sufficient ? 'font-semibold' : 'text-ink-3'}`}>{s.avgDrop != null ? `${s.avgDrop > 0 ? '−' : s.avgDrop < 0 ? '+' : ''}${Math.abs(s.avgDrop).toFixed(1)}` : '—'}<span className="ml-1 text-[0.75rem] font-normal text-ink-3">({s.measured} {s.measured === 1 ? 'medida' : 'medidas'})</span></span>
               </li>
             ))}
           </ul>
         ) : (
           <p className="mt-2 text-[0.9rem] text-ink-3">Ainda sem registros de SOS.</p>
         )}
-        <div className="mt-2 text-[0.75rem] text-ink-3">Queda = vontade avaliada nos primeiros {BASELINE_WINDOW_SEC} s do SOS, antes de a estratégia agir, menos a última avaliação. Episódios sem essa avaliação inicial ficam registrados, mas não entram aqui. "Suficiente" só com {MIN_CRAVINGS_FOR_STRATEGY} medidas. Descritivo, não causal.</div>
+        <div className="mt-2 text-[0.75rem] text-ink-3">Variação = primeira avaliação da sessão menos a última. Nenhuma avaliação é anterior à estratégia, porque ela começa ao abrir o SOS. Só entram sessões com uma única estratégia e pelo menos duas avaliações; registros antigos sem essa informação ficam fora. Ordenado por uso, não por "melhor". Abaixo de {MIN_CRAVINGS_FOR_STRATEGY} medidas o número é fraco. Descritivo, não causal.</div>
       </Card>
 
       <Card className="p-6">

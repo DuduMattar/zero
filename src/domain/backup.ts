@@ -47,7 +47,7 @@ export async function buildBackup(payload: BackupPayload, exportedAt: number): P
 
 const base = { id: z.string().min(1), at: z.number(), tz: z.string(), createdAt: z.number() };
 const eventSchema = z.discriminatedUnion('type', [
-  z.object({ ...base, type: z.literal('craving'), strategy: z.string(), durationSec: z.number(), intensityBefore: z.number().nullable(), intensityBeforeAtSec: z.number().nullable().optional(), ratings: z.array(z.object({ atSec: z.number(), intensity: z.number() })), intensityAfter: z.number().nullable(), trigger: z.string().nullable(), outcome: z.enum(['resisted', 'slipped', 'continued', 'abandoned']) }),
+  z.object({ ...base, type: z.literal('craving'), strategy: z.string(), strategies: z.array(z.string()).optional(), durationSec: z.number(), intensityBefore: z.number().nullable(), intensityBeforeAtSec: z.number().nullable().optional(), ratings: z.array(z.object({ atSec: z.number(), intensity: z.number() })), intensityAfter: z.number().nullable(), trigger: z.string().nullable(), outcome: z.enum(['resisted', 'slipped', 'continued', 'abandoned']) }),
   z.object({ ...base, type: z.literal('diary'), mood: z.number(), anxiety: z.number(), irritability: z.number(), energy: z.number(), sleep: z.number(), focus: z.number(), craving: z.number(), activity: z.boolean(), symptoms: z.array(z.string()), text: z.string() }),
   z.object({ ...base, type: z.literal('slip'), product: z.string(), hadNicotine: z.boolean(), units: z.number(), untilAt: z.number().nullable().optional(), trigger: z.string().nullable(), feeling: z.string().nullable(), note: z.string(), lesson: z.string() }),
   z.object({ ...base, type: z.literal('relapse'), products: z.array(z.string()), hadNicotine: z.boolean(), note: z.string() }),
@@ -75,6 +75,7 @@ const profileSchema = z.object({
   triggers: z.array(z.string()),
   reasons: z.array(z.string()),
   goals: z.array(z.string()),
+  support: z.object({ name: z.string(), phone: z.string(), message: z.string() }).nullable().optional(),
   tz: z.string(),
   createdAt: z.number(),
   updatedAt: z.number(),
@@ -92,6 +93,8 @@ const settingsSchema = z.object({
   onboardingDone: z.boolean(),
   schemaVersion: z.number(),
   lastWeeklyReviewKey: z.string().nullable().optional(),
+  favoriteStrategy: z.string().optional(),
+  sosDraft: z.unknown().nullable().optional(),
 });
 
 const goalSchema = z.object({ id: z.string(), title: z.string(), amount: z.number(), createdAt: z.number(), status: z.enum(['active', 'reached', 'archived']) });

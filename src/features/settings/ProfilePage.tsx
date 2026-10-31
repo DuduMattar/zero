@@ -22,6 +22,9 @@ function ProfileForm({ profile }: { profile: Profile }) {
   const [goals, setGoals] = useState(profile.goals.join('\n'));
   const [years, setYears] = useState(profile.yearsUsing ? String(profile.yearsUsing) : '');
   const [longest, setLongest] = useState(profile.longestQuitDays ? String(profile.longestQuitDays) : '');
+  const [supName, setSupName] = useState(profile.support?.name ?? '');
+  const [supPhone, setSupPhone] = useState(profile.support?.phone ?? '');
+  const [supMsg, setSupMsg] = useState(profile.support?.message ?? 'Estou com vontade de fumar agora. Você pode falar comigo por alguns minutos? Não preciso de bronca, só de companhia.');
   const toggle = (arr: string[], v: string) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
   const lines = (s: string) => s.split('\n').map((x) => x.trim()).filter(Boolean);
 
@@ -36,6 +39,7 @@ function ProfileForm({ profile }: { profile: Profile }) {
       goals: lines(goals),
       yearsUsing: years ? Number(years) : null,
       longestQuitDays: longest ? Number(longest) : null,
+      support: supPhone.replace(/\D/g, '').length >= 8 ? { name: supName.trim(), phone: supPhone.trim(), message: supMsg.trim() } : null,
       updatedAt: Date.now(),
     });
     toast('Perfil salvo.');
@@ -80,6 +84,15 @@ function ProfileForm({ profile }: { profile: Profile }) {
             <Chip key={g} onClick={() => setGoals((s) => (s.trim() ? s + '\n' : '') + g)}>+ {g}</Chip>
           ))}
         </div>
+      </Card>
+      <Card className="space-y-3 p-6">
+        <Label>Pessoa de apoio</Label>
+        <div className="text-[0.85rem] text-ink-3">No SOS, "Falar com…" abre o WhatsApp com a mensagem pronta. Nada é enviado sozinho. Combine antes com a pessoa.</div>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Nome"><input className={inputCls} value={supName} onChange={(e) => setSupName(e.target.value)} data-testid="support-name" /></Field>
+          <Field label="Celular (com DDD)"><input className={inputCls} inputMode="tel" placeholder="11 99999-9999" value={supPhone} onChange={(e) => setSupPhone(e.target.value)} data-testid="support-phone" /></Field>
+        </div>
+        <Field label="Mensagem"><textarea className={`${inputCls} min-h-20`} value={supMsg} onChange={(e) => setSupMsg(e.target.value)} /></Field>
       </Card>
       <Card className="space-y-3 p-6">
         <Label>História</Label>

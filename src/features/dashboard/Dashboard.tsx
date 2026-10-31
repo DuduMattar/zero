@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useData } from '../../app/hooks/useData';
 import { isStandalone } from '../../app/hooks/useNow';
-import { formatDate, humanDuration, wholeDays } from '../../domain/format';
+import { formatTime, formatDate, humanDuration, wholeDays } from '../../domain/format';
 import { messageForDay } from '../../content/messages.pt-BR';
 import { programDay, phaseOf, PHASE_LABEL } from '../../domain/program';
 import { MS_DAY, type TrackResult } from '../../domain/tracks';
@@ -10,6 +10,7 @@ import type { TrackId } from '../../domain/types';
 import { Button, Card, Label, Progress, useToast } from '../../ui';
 import { PlanCard } from './PlanCard';
 import { IconEye, IconEyeOff, IconGear } from '../../ui/icons';
+import { validDraft } from '../sos/Sos';
 import { PRODUCTS, type ProductId } from '../../domain/types';
 import { ReviewCard } from '../trends/ReviewCard';
 import { shareProgress } from '../../app/share';
@@ -51,12 +52,13 @@ export function Dashboard() {
   const tl = timelinePosition(main.runMs); // relógio de saúde: lapsos isolados não zeram
   const todayKey = formatDate(now, profile.tz);
   const diaryToday = events.find((e) => e.type === 'diary' && formatDate(e.at, profile.tz) === todayKey);
-  const resisted = events.filter((e) => e.type === 'craving' && e.outcome === 'resisted').length;
+  const resisted = events.filter((e) => e.type === 'craving' && (e.outcome === 'resisted' || e.outcome === 'continued')).length;
   const backupDue = !settings.lastExternalBackupAt ? events.length > 0 && now - profile.createdAt > MS_DAY : now - settings.lastExternalBackupAt > settings.backupReminderDays * MS_DAY;
   const bestFromHistory = profile.longestQuitDays ? profile.longestQuitDays * MS_DAY : 0;
   const hour = Number(new Intl.DateTimeFormat('en-US', { timeZone: profile.tz, hour: 'numeric', hourCycle: 'h23' }).format(new Date(now)));
   const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
   const what = mainLabel(profile.products);
+  const draft = validDraft(settings.sosDraft, now);
   const totalDays = wholeDays(main.totalFreeMs);
 
   return (
@@ -78,8 +80,9 @@ export function Dashboard() {
       </header>
 
       <Button variant="primary" full size="lg" className="min-h-[68px] text-[1.1rem]" onClick={() => nav('/sos')} data-testid="sos">
-        Estou com vontade de fumar
+        {draft ? 'Voltar à vontade em andamento' : 'Estou com vontade de fumar'}
       </Button>
+      {draft ? <div className="-mt-4 text-center text-[0.8rem] text-ink-3" data-testid="sos-draft-hint">Você tem um SOS aberto desde {formatTime(draft.startedAt, profile.tz)}. Ele continua de onde parou.</div> : null}
 
       {relapsing ? (
         <Card tone="warn" className="space-y-3 p-6">
@@ -199,7 +202,7 @@ export function Dashboard() {
             <TrackRow key={id} t={tracks[id]} />
           ))}
         </div>
-        <div className="mt-3 border-t border-line pt-3 text-[0.85rem] text-ink-3">{resisted} {resisted === 1 ? 'vontade superada' : 'vontades superadas'} · {main.slipCount} {main.slipCount === 1 ? 'lapso' : 'lapsos'}</div>
+        <div className="mt-3 border-t border-line pt-3 text-[0.85rem] text-ink-3">{resisted} {resisted === 1 ? 'vontade sem uso' : 'vontades sem uso'} · {main.slipCount} {main.slipCount === 1 ? 'lapso' : 'lapsos'}</div>
       </section>
 
       {backupDue ? (

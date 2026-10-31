@@ -2,13 +2,12 @@ import type { AppEvent, CravingEvent, CravingRating } from './types';
 import { MIN_CRAVINGS_FOR_STRATEGY } from './thresholds';
 
 // SOS invertido: alívio primeiro (cronômetro + estratégia), dado depois.
-// A estratégia começa a agir assim que a tela abre. Por isso, uma avaliação só vale como
-// "antes" se for feita nos primeiros segundos; depois disso ela é avaliação intermediária.
-
-/** Janela, em segundos, em que uma avaliação ainda conta como linha de base. */
-export const BASELINE_WINDOW_SEC = 20;
+// A estratégia começa a agir assim que a tela abre, então NENHUMA avaliação é "pré-intervenção".
+// O que o app guarda é: primeira avaliação (aos X s), avaliações seguintes, avaliação final.
+// A "variação" é descritiva (primeira − última) e só é comparada entre sessões de estratégia única.
 
 export type CravingStep = 'relief' | 'exit' | 'done';
+/** resisted: diminuiu · continued: saiu com a vontade presente · slipped: houve uso · abandoned: encerrada sem avaliação final */
 export type CravingOutcome = 'resisted' | 'slipped' | 'continued' | 'abandoned';
 
 export interface CravingState {
@@ -16,25 +15,29 @@ export interface CravingState {
   startedAt: number;
   durationSec: number;
   strategy: string;
+  strategies: string[];
+  strategyStartedAt: number;
   intensityBefore: number | null;
   intensityBeforeAtSec: number | null;
   ratings: CravingRating[];
   intensityAfter: number | null;
   trigger: string | null;
+  /** reposição confirmada na saída (null = não usou / não perguntado) */
+  nrtUsed: 'patch' | 'gum' | 'lozenge' | 'other' | null;
   outcome: CravingOutcome | null;
   endedAt: number | null;
 }
 
 export type CravingAction =
   | { type: 'start'; now: number; strategy: string; durationSec: number }
-  | { type: 'setStrategy'; strategy: string }
-  | { type: 'rateBefore'; now: number; intensity: number }
+  | { type: 'setStrategy'; strategy: string; now: number; durationSec: number }
   | { type: 'rateNow'; now: number; intensity: number }
   | { type: 'extend'; extraSec: number }
   | { type: 'toExit'; now: number; outcome: 'resisted' | 'slipped' | 'continued' }
   | { type: 'backToRelief' }
   | { type: 'setAfter'; intensity: number }
   | { type: 'setTrigger'; trigger: string | null }
+  | { type: 'setNrtUsed'; kind: CravingState['nrtUsed'] }
   | { type: 'finish'; now: number; outcome?: CravingOutcome };
 
 export const initialCraving = (): CravingState => ({
@@ -42,32 +45,34 @@ export const initialCraving = (): CravingState => ({
   startedAt: 0,
   durationSec: 180,
   strategy: 'breathing',
+  strategies: [],
+  strategyStartedAt: 0,
   intensityBefore: null,
   intensityBeforeAtSec: null,
   ratings: [],
   intensityAfter: null,
   trigger: null,
+  nrtUsed: null,
   outcome: null,
   endedAt: null,
 });
 
 const clamp10 = (n: number) => Math.max(0, Math.min(10, Math.round(n)));
+const secSince = (now: number, t0: number) => Math.max(0, Math.round((now - t0) / 1000));
 
 export function cravingReducer(s: CravingState, a: CravingAction): CravingState {
   switch (a.type) {
     case 'start':
-      return { ...initialCraving(), startedAt: a.now, durationSec: a.durationSec, strategy: a.strategy };
-    case 'setStrategy':
-      return s.step === 'relief' ? { ...s, strategy: a.strategy } : s;
-    case 'rateBefore': {
-      // Só é "antes" dentro da janela e se ainda não houver linha de base; fora disso vira avaliação intermediária.
-      const atSec = Math.max(0, Math.round((a.now - s.startedAt) / 1000));
-      if (s.step !== 'relief' || s.intensityBefore != null || atSec > BASELINE_WINDOW_SEC) return cravingReducer(s, { type: 'rateNow', now: a.now, intensity: a.intensity });
-      return { ...s, intensityBefore: clamp10(a.intensity), intensityBeforeAtSec: atSec };
+      return { ...initialCraving(), startedAt: a.now, strategyStartedAt: a.now, durationSec: a.durationSec, strategy: a.strategy, strategies: [a.strategy] };
+    case 'setStrategy': {
+      if (s.step !== 'relief' || a.strategy === s.strategy) return s;
+      // Trocar reinicia o tempo sugerido da nova estratégia; a sessão continua a mesma.
+      return { ...s, strategy: a.strategy, strategies: [...s.strategies, a.strategy], strategyStartedAt: a.now, durationSec: secSince(a.now, s.startedAt) + a.durationSec };
     }
     case 'rateNow': {
       if (s.step === 'done') return s;
-      const atSec = Math.max(0, Math.round((a.now - s.startedAt) / 1000));
+      const atSec = secSince(a.now, s.startedAt);
+      if (s.intensityBefore == null) return { ...s, intensityBefore: clamp10(a.intensity), intensityBeforeAtSec: atSec };
       return { ...s, ratings: [...s.ratings, { atSec, intensity: clamp10(a.intensity) }] };
     }
     case 'extend':
@@ -75,16 +80,20 @@ export function cravingReducer(s: CravingState, a: CravingAction): CravingState 
     case 'toExit':
       return s.step === 'relief' ? { ...s, step: 'exit', endedAt: a.now, outcome: a.outcome } : s;
     case 'backToRelief':
-      // "Continua" → trocar estratégia ou ler motivos e seguir. O registro continua o mesmo episódio.
       return s.step === 'exit' ? { ...s, step: 'relief', endedAt: null, outcome: null, intensityAfter: null } : s;
     case 'setAfter':
       return { ...s, intensityAfter: clamp10(a.intensity) };
     case 'setTrigger':
       return { ...s, trigger: a.trigger };
+    case 'setNrtUsed':
+      return { ...s, nrtUsed: a.kind };
     case 'finish':
       return { ...s, step: 'done', outcome: a.outcome ?? s.outcome ?? 'abandoned', endedAt: s.endedAt ?? a.now };
   }
 }
+
+/** A sessão passou por "Goma ou pastilha de reposição" em algum momento (mesmo que depois tenha trocado). */
+export const usedNrtStrategy = (s: CravingState) => s.strategies.includes('nrt_fast');
 
 export function toCravingEvent(s: CravingState, id: string, tz: string, createdAt: number): CravingEvent {
   const end = s.endedAt ?? createdAt;
@@ -95,6 +104,7 @@ export function toCravingEvent(s: CravingState, id: string, tz: string, createdA
     tz,
     createdAt,
     strategy: s.strategy,
+    strategies: s.strategies,
     durationSec: Math.max(0, Math.round((end - s.startedAt) / 1000)),
     intensityBefore: s.intensityBefore,
     intensityBeforeAtSec: s.intensityBeforeAtSec,
@@ -105,37 +115,40 @@ export function toCravingEvent(s: CravingState, id: string, tz: string, createdA
   };
 }
 
-/**
- * Queda de intensidade: linha de base (avaliada antes de a estratégia agir) − última medida.
- * Sem linha de base real, null: o episódio fica registrado, mas não entra na comparação.
- */
+/** Vontade atravessada sem uso registrado (diminuiu ou continuava ao sair). */
+export const withoutUse = (e: CravingEvent) => e.outcome === 'resisted' || e.outcome === 'continued';
+
+/** Variação descritiva: primeira avaliação conhecida − última. null com menos de duas medidas. Não é medida pré/pós-intervenção. */
 export function cravingDrop(e: CravingEvent): number | null {
-  if (e.intensityBefore == null) return null;
-  const last = e.intensityAfter ?? (e.ratings.length ? e.ratings[e.ratings.length - 1].intensity : null);
-  if (last == null) return null;
-  return e.intensityBefore - last;
+  const measures = [...(e.intensityBefore != null ? [e.intensityBefore] : []), ...e.ratings.map((r) => r.intensity), ...(e.intensityAfter != null ? [e.intensityAfter] : [])];
+  if (measures.length < 2) return null;
+  return measures[0] - measures[measures.length - 1];
 }
+
+/** Entra na comparação por estratégia: uma única estratégia conhecida e pelo menos duas medidas. Registros antigos (sem `strategies`) ficam fora. */
+export const comparable = (e: CravingEvent) => e.strategies?.length === 1 && cravingDrop(e) != null;
 
 export interface StrategyStat {
   strategy: string;
+  /** sessões cuja estratégia final foi esta */
   n: number;
-  resisted: number;
+  withoutUse: number;
+  /** sessões comparáveis (estratégia única, ≥ 2 medidas) */
+  measured: number;
   avgDrop: number | null;
   medianDrop: number | null;
-  measured: number;
   sufficient: boolean;
 }
 
-/** Estatística descritiva por estratégia. `sufficient` só com medidas ≥ limiar. Não é afirmação causal. */
+/** Tabela descritiva por estratégia, ordenada por uso (n). Nunca por "melhor": não é afirmação causal. */
 export function strategyEffectiveness(events: AppEvent[]): StrategyStat[] {
-  const by = new Map<string, { drops: number[]; n: number; resisted: number }>();
+  const by = new Map<string, { drops: number[]; n: number; wu: number }>();
   for (const e of events) {
     if (e.type !== 'craving') continue;
-    const g = by.get(e.strategy) ?? { drops: [], n: 0, resisted: 0 };
+    const g = by.get(e.strategy) ?? { drops: [], n: 0, wu: 0 };
     g.n += 1;
-    if (e.outcome === 'resisted') g.resisted += 1;
-    const d = cravingDrop(e);
-    if (d != null) g.drops.push(d);
+    if (withoutUse(e)) g.wu += 1;
+    if (comparable(e)) g.drops.push(cravingDrop(e)!);
     by.set(e.strategy, g);
   }
   const out: StrategyStat[] = [];
@@ -143,12 +156,7 @@ export function strategyEffectiveness(events: AppEvent[]): StrategyStat[] {
     const sorted = g.drops.slice().sort((a, b) => a - b);
     const avg = sorted.length ? sorted.reduce((a, b) => a + b, 0) / sorted.length : null;
     const med = sorted.length ? (sorted.length % 2 ? sorted[(sorted.length - 1) / 2] : (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2) : null;
-    out.push({ strategy, n: g.n, resisted: g.resisted, avgDrop: avg, medianDrop: med, measured: sorted.length, sufficient: sorted.length >= MIN_CRAVINGS_FOR_STRATEGY });
+    out.push({ strategy, n: g.n, withoutUse: g.wu, measured: sorted.length, avgDrop: avg, medianDrop: med, sufficient: sorted.length >= MIN_CRAVINGS_FOR_STRATEGY });
   }
-  return out.sort((a, b) => (b.avgDrop ?? -Infinity) - (a.avgDrop ?? -Infinity) || b.n - a.n);
-}
-
-/** Estratégia a sugerir primeiro: a de maior queda média entre as com amostra suficiente; null se nenhuma. */
-export function bestStrategy(events: AppEvent[]): StrategyStat | null {
-  return strategyEffectiveness(events).find((s) => s.sufficient && s.avgDrop != null) ?? null;
+  return out.sort((a, b) => b.n - a.n || a.strategy.localeCompare(b.strategy));
 }

@@ -22,9 +22,9 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   { id: 't1y', title: '1 ano', body: 'Um ano. O risco cardíaco já caiu de forma mensurável.', kind: 'tempo' },
   { id: 't2y', title: '2 anos', body: 'Dois anos.', kind: 'tempo' },
   { id: 'nic30', title: '30 dias sem nicotina', body: 'Um mês sem nicotina de nenhuma origem.', kind: 'tempo' },
-  { id: 'c1', title: 'Primeira vontade superada', body: 'Você sentiu, ficou com ela e ela passou.', kind: 'comportamento' },
-  { id: 'c10', title: '10 vontades superadas', body: 'Dez vezes. Já dá para ver um padrão nos seus registros.', kind: 'comportamento' },
-  { id: 'c50', title: '50 vontades superadas', body: 'Cinquenta. A vontade virou algo que você sabe atravessar.', kind: 'comportamento' },
+  { id: 'c1', title: 'Primeira vontade sem uso', body: 'Você sentiu, registrou e não usou.', kind: 'comportamento' },
+  { id: 'c10', title: '10 vontades sem uso', body: 'Dez vezes registradas. Já dá para olhar os seus padrões.', kind: 'comportamento' },
+  { id: 'c50', title: '50 vontades sem uso', body: 'Cinquenta registros sem uso.', kind: 'comportamento' },
   { id: 'd7', title: '7 diários seguidos', body: 'Uma semana registrando como você está.', kind: 'comportamento' },
   { id: 'b1', title: 'Primeiro backup externo', body: 'Seus dados estão protegidos fora deste aparelho.', kind: 'comportamento' },
   { id: 's1', title: 'Lapso registrado com lição', body: 'Você anotou o que pode ser diferente. Isso vale mais que fingir que não aconteceu.', kind: 'comportamento' },
@@ -54,7 +54,7 @@ export function earnedAchievements(profile: Profile, events: AppEvent[], now: nu
   const time: [string, number][] = [['t24h', 24 * H], ['t3d', 3 * MS_DAY], ['t7d', 7 * MS_DAY], ['t14d', 14 * MS_DAY], ['t30d', 30 * MS_DAY], ['t60d', 60 * MS_DAY], ['t90d', 90 * MS_DAY], ['t180d', 182 * MS_DAY], ['t1y', 365 * MS_DAY], ['t2y', 730 * MS_DAY]];
   for (const [id, ms] of time) if (best >= ms) out.push(id);
   if (t.nicotine.bestMs >= 30 * MS_DAY) out.push('nic30');
-  const resisted = events.filter((e) => e.type === 'craving' && e.outcome === 'resisted' && e.at <= now).length;
+  const resisted = events.filter((e) => e.type === 'craving' && (e.outcome === 'resisted' || e.outcome === 'continued') && e.at <= now).length;
   if (resisted >= 1) out.push('c1');
   if (resisted >= 10) out.push('c10');
   if (resisted >= 50) out.push('c50');

@@ -68,7 +68,7 @@ export function Scale({ value, onChange, min = 0, max = 10, labels, ariaLabel }:
   for (let i = min; i <= max; i++) items.push(i);
   return (
     <div>
-      <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }} role="radiogroup" aria-label={ariaLabel}>
+      <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(items.length, 6)}, minmax(0, 1fr))` }} role="radiogroup" aria-label={ariaLabel}>
         {items.map((i) => (
           <button
             key={i}
@@ -76,7 +76,7 @@ export function Scale({ value, onChange, min = 0, max = 10, labels, ariaLabel }:
             role="radio"
             aria-checked={value === i}
             onClick={() => onChange(i)}
-            className={`press tabular min-h-11 rounded-xl border text-sm font-semibold ${value === i ? 'border-accent bg-accent text-accent-ink' : 'border-line bg-card-2 text-ink-2'}`}
+            className={`press tabular min-h-12 rounded-xl border text-[1rem] font-semibold ${value === i ? 'border-accent bg-accent text-accent-ink' : 'border-line bg-card-2 text-ink-2'}`}
           >
             {i}
           </button>

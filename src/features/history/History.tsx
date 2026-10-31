@@ -16,7 +16,7 @@ function describe(e: AppEvent, tz: string): { title: string; sub: string; tone: 
   switch (e.type) {
     case 'craving': {
       const d = cravingDrop(e);
-      return { title: e.outcome === 'resisted' ? 'Vontade superada' : e.outcome === 'slipped' ? 'Vontade → uso' : e.outcome === 'continued' ? 'Vontade continuava ao sair' : 'Vontade (sem desfecho)', sub: `${strategyById(e.strategy).label} · ${Math.round(e.durationSec / 60)} min${d != null ? ` · queda ${d}` : ''}${e.trigger ? ` · ${triggerLabel(e.trigger)}` : ''}`, tone: e.outcome === 'resisted' ? 'text-accent' : 'text-warn' };
+      return { title: e.outcome === 'resisted' ? 'Vontade diminuiu' : e.outcome === 'slipped' ? 'Vontade → uso' : e.outcome === 'continued' ? 'Vontade continuava ao sair' : 'Vontade encerrada sem avaliação final', sub: `${(e.strategies?.length ?? 1) > 1 ? 'Várias estratégias' : strategyById(e.strategy).label} · ${Math.round(e.durationSec / 60)} min${d != null ? ` · variação ${d > 0 ? '−' : d < 0 ? '+' : ''}${Math.abs(d)}` : ''}${e.trigger ? ` · ${triggerLabel(e.trigger)}` : ''}`, tone: e.outcome === 'slipped' ? 'text-warn' : e.outcome === 'resisted' ? 'text-accent' : 'text-ink' };
     }
     case 'slip':
       return { title: `Lapso: ${e.units} ${e.units === 1 ? productById(e.product).unitLabel : productById(e.product).unitLabelPlural}`, sub: `${productById(e.product).label}${e.hadNicotine ? '' : ' (sem nicotina)'}${e.trigger ? ` · ${triggerLabel(e.trigger)}` : ''}${e.lesson ? ` · "${e.lesson}"` : ''}`, tone: 'text-warn' };

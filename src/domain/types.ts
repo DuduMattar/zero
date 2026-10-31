@@ -71,6 +71,8 @@ export interface Profile {
   triggers: string[];
   reasons: string[];
   goals: string[];
+  /** pessoa de apoio para o botão "Falar com…" do SOS; mensagem editável */
+  support?: { name: string; phone: string; message: string } | null;
   tz: string;
   createdAt: number;
   updatedAt: number;
@@ -90,9 +92,13 @@ interface EventBase {
 
 export interface CravingEvent extends EventBase {
   type: 'craving';
+  /** estratégia final (compatibilidade); a lista completa fica em `strategies` */
   strategy: string;
+  /** todas as estratégias usadas na sessão, em ordem. Ausente em registros antigos: sem informação sobre trocas. */
+  strategies?: string[];
   durationSec: number;
-  intensityBefore: number | null; // só conta como linha de base se avaliada nos primeiros segundos (ver craving.ts)
+  /** primeira avaliação da sessão (não é medida pré-intervenção: a estratégia já começou) */
+  intensityBefore: number | null;
   intensityBeforeAtSec?: number | null;
   ratings: CravingRating[];
   intensityAfter: number | null;
@@ -222,6 +228,10 @@ export interface Settings {
   schemaVersion: number;
   /** semana (YYYY-WW) da última revisão semanal vista */
   lastWeeklyReviewKey?: string | null;
+  /** estratégia com que o SOS abre; escolhida pelo usuário, nunca pelo app */
+  favoriteStrategy?: string;
+  /** episódio de SOS em andamento, gravado a cada passo para sobreviver a fechar o app */
+  sosDraft?: unknown | null;
 }
 
 export const DEFAULT_SETTINGS: Settings = {

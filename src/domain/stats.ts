@@ -37,7 +37,7 @@ export function dailySeries(events: AppEvent[], tz: string, now: number, days: n
     if (!p) continue;
     if (e.type === 'craving') {
       p.cravings++;
-      if (e.outcome === 'resisted') p.resisted++;
+      if (e.outcome === 'resisted' || e.outcome === 'continued') p.resisted++;
       const first = e.intensityBefore ?? e.ratings[0]?.intensity ?? e.intensityAfter;
       if (first != null) ints.set(p.key, [...(ints.get(p.key) ?? []), first]);
     } else if (e.type === 'diary') {

@@ -16,7 +16,7 @@ export function ReviewCard({ events, now }: { events: AppEvent[]; now: number })
       <div className="grid grid-cols-3 gap-2 pt-2 text-center">
         {[
           ['Vontades', r.thisWeek.cravings, r.lastWeek.cravings],
-          ['Superadas', r.thisWeek.resisted, r.lastWeek.resisted],
+          ['Sem uso', r.thisWeek.resisted, r.lastWeek.resisted],
           ['Diários', r.thisWeek.diaries, r.lastWeek.diaries],
         ].map(([l, a, b]) => (
           <div key={String(l)} className="rounded-2xl bg-card-2 p-3">

@@ -49,6 +49,23 @@ async function readEvents(page: Page): Promise<Array<Record<string, unknown>>> {
   );
 }
 
+async function readSettings(page: Page): Promise<Record<string, unknown>> {
+  return page.evaluate(
+    () =>
+      new Promise((resolve, reject) => {
+        const req = indexedDB.open('zero');
+        req.onerror = () => reject(req.error);
+        req.onsuccess = () => {
+          const db = req.result;
+          const tx = db.transaction('settings', 'readonly');
+          const get = tx.objectStore('settings').get('singleton');
+          get.onsuccess = () => resolve((get.result ?? {}) as Record<string, unknown>);
+          get.onerror = () => reject(get.error);
+        };
+      }),
+  );
+}
+
 test.describe('ZERO V1', () => {
   test('onboarding → painel persiste após recarregar', async ({ page }) => {
     await onboard(page, 3);
@@ -60,51 +77,99 @@ test.describe('ZERO V1', () => {
     await expect(page.getByText('Sem cigarro')).toBeVisible();
   });
 
-  test('SOS: linha de base, "continua" com troca de estratégia, saída com registro, sessão sem linha de base', async ({ page }) => {
+  test('SOS: primeira avaliação, "continua" com troca, saída com registro, fechar com descarte', async ({ page }) => {
     await onboard(page);
-    await page.getByTestId('sos').click();
+    // botão principal com a cor do componente (regressão do reset de CSS fora das camadas)
+    const sosBtn = page.getByTestId('sos');
+    const style = await sosBtn.evaluate((el) => { const cs = getComputedStyle(el); return { color: cs.color, weight: cs.fontWeight }; });
+    expect(style.color).toBe('rgb(255, 255, 255)');
+    expect(style.weight).toBe('600');
+    await sosBtn.click();
     await expect(page.getByTestId('sos-timer')).toHaveText(/0[23]:\d\d/);
     await expect(page.locator('[aria-live=polite]')).toContainText(/Inspire|Segure|Solte/);
-    // linha de base nos primeiros segundos
-    await page.getByRole('radiogroup', { name: 'Vontade ao começar' }).getByRole('radio', { name: '7' }).click();
-    await expect(page.getByText('Registrado: 7 ao começar')).toBeVisible();
-    await page.getByRole('button', { name: 'Como está agora?' }).click();
-    await page.getByRole('radiogroup', { name: 'Intensidade agora' }).getByRole('radio', { name: '5' }).click();
-    await expect(page.getByText('Registrado: 7 ao começar → 5')).toBeVisible();
-    // a vontade continua → trocar estratégia e seguir no mesmo episódio
+    await page.getByRole('button', { name: /Como está a vontade/ }).click();
+    await page.getByRole('radiogroup', { name: 'Intensidade agora' }).getByRole('radio', { name: '7' }).click();
+    await expect(page.getByText(/Registrado: 7 aos \d+ s/)).toBeVisible();
+    // a vontade continua → outra estratégia, mesmo episódio
     await page.getByTestId('sos-continue').click();
-    await expect(page.getByText('A vontade continua')).toBeVisible();
+    await expect(page.getByText('O que ajudaria agora?')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Definir uma pessoa de apoio' })).toBeVisible();
     await page.getByTestId('sos-continue-switch').click();
     await page.getByTestId('strategy-water').click();
     await expect(page.getByRole('heading', { name: 'Beber água' })).toBeVisible();
-    await expect(page.getByText('Registrado: 7 ao começar → 5')).toBeVisible();
-    // diminuiu → salvar
+    await expect(page.getByText(/Registrado: 7 aos \d+ s/)).toBeVisible();
+    // diminuiu → salvar, com contexto recolhido
     await page.getByTestId('sos-passed').click();
     await page.getByRole('radiogroup', { name: 'Intensidade final' }).getByRole('radio', { name: '2' }).click();
+    await expect(page.getByRole('button', { name: 'Café' })).toHaveCount(0);
+    await page.getByTestId('sos-context').click();
     await page.getByRole('button', { name: 'Café' }).click();
     await page.getByTestId('sos-save-resisted').click();
     await expect(page.getByTestId('sos')).toBeVisible();
     let ev = await readEvents(page);
     const c = ev.find((e) => e.type === 'craving') as Record<string, unknown>;
-    expect(c).toBeTruthy();
     expect(c.outcome).toBe('resisted');
-    expect(c.strategy).toBe('water');
+    expect(c.strategies).toEqual(['breathing', 'water']);
     expect(c.intensityBefore).toBe(7);
     expect(c.intensityAfter).toBe(2);
-    expect((c.ratings as unknown[]).length).toBe(1);
-    // segunda sessão: sem linha de base, sai com a vontade presente; registro fica
+    expect(c.trigger).toBe('coffee');
+    // segunda sessão: sai com a vontade presente
     await page.getByTestId('sos').click();
     await page.getByTestId('sos-continue').click();
     await page.getByTestId('sos-save-continued').click();
     await expect(page.getByTestId('sos')).toBeVisible();
+    // terceira: abriu sem querer → descartar, nada gravado
+    await page.getByTestId('sos').click();
+    await page.getByRole('button', { name: 'Fechar' }).click();
+    await page.getByTestId('sos-close-discard').click();
+    await expect(page.getByTestId('sos')).toHaveText('Estou com vontade de fumar');
     ev = await readEvents(page);
     const cs = ev.filter((e) => e.type === 'craving') as Record<string, unknown>[];
     expect(cs.length).toBe(2);
-    const second = cs.find((e) => e.outcome === 'continued')!;
-    expect(second.intensityBefore).toBeNull();
+    expect(cs.some((e) => e.outcome === 'continued' && e.intensityBefore === null)).toBe(true);
     await page.getByRole('link', { name: 'Histórico' }).click();
-    await expect(page.getByText('Vontade superada')).toBeVisible();
+    await expect(page.getByText('Vontade diminuiu')).toBeVisible();
     await expect(page.getByText('Vontade continuava ao sair')).toBeVisible();
+  });
+
+  test('SOS: rascunho sobrevive a recarregar; pessoa de apoio abre o WhatsApp sem enviar; fechar salva como encerrada', async ({ page }) => {
+    await onboard(page);
+    await page.goto('/#/ajustes/perfil');
+    await page.getByTestId('support-name').fill('Pedro');
+    await page.getByTestId('support-phone').fill('11 99999-0000');
+    await page.getByRole('button', { name: 'Salvar perfil' }).click();
+    await expect(page).not.toHaveURL(/perfil/);
+    await page.goto('/#/');
+    await page.getByTestId('sos').click();
+    await page.getByRole('button', { name: /Como está a vontade/ }).click();
+    await page.getByRole('radiogroup', { name: 'Intensidade agora' }).getByRole('radio', { name: '6' }).click();
+    await expect(page.getByText(/Registrado: 6 aos/)).toBeVisible();
+    await expect.poll(async () => ((await readSettings(page)) as { sosDraft?: { intensityBefore?: number } | null }).sosDraft?.intensityBefore).toBe(6);
+    // sai do SOS pelo painel e recarrega o app inteiro (como voltar de outro app)
+    await page.goto('/#/');
+    await expect(page.getByTestId('sos')).toHaveText('Voltar à vontade em andamento');
+    await page.reload();
+    await expect(page.getByTestId('sos')).toHaveText('Voltar à vontade em andamento');
+    await expect(page.getByTestId('sos-draft-hint')).toBeVisible();
+    await page.getByTestId('sos').click();
+    await expect(page.getByText(/Registrado: 6 aos/)).toBeVisible(); // exatamente o mesmo episódio
+    await page.getByTestId('sos-continue').click();
+    const wa = page.getByTestId('sos-support');
+    await expect(wa).toHaveText('Falar com Pedro');
+    await expect(wa).toHaveAttribute('href', /^https:\/\/wa\.me\/5511999990000\?text=/);
+    await expect(wa).toHaveAttribute('target', '_blank');
+    await page.getByRole('button', { name: 'Tentar outra estratégia' }).click();
+    await page.getByTestId('strategy-walk').click();
+    await page.getByRole('button', { name: 'Fechar' }).click();
+    await page.getByTestId('sos-close-save').click();
+    await expect(page.getByTestId('sos')).toHaveText('Estou com vontade de fumar');
+    const ev = await readEvents(page);
+    const cs = ev.filter((e) => e.type === 'craving') as Record<string, unknown>[];
+    expect(cs.length).toBe(1); // sem duplicação
+    expect(cs[0].outcome).toBe('abandoned');
+    expect(cs[0].intensityBefore).toBe(6);
+    expect(cs[0].strategies).toEqual(['breathing', 'walk']);
+    expect(ev.some((e) => e.type === 'nrt_dose')).toBe(false); // sem dose inventada
   });
 
   test('diário em menos de 60 s e visível no painel', async ({ page }) => {
@@ -126,9 +191,8 @@ test.describe('ZERO V1', () => {
     await expect(page.getByTestId('total-days')).toHaveText('5');
     await expect(page.getByRole('link', { name: /Registrar um uso/ })).toBeVisible();
     await page.getByTestId('sos').click();
+    await expect(page.getByTestId('sos-smoked')).toHaveText(/Fumei|Usei/);
     await page.getByTestId('sos-smoked').click();
-    await expect(page.getByText('Fumei ou vapei', { exact: true })).toBeVisible();
-    await page.getByTestId('sos-save-slipped').click();
     await expect(page).toHaveURL(/lapso/);
     await page.getByTestId('slip-units').fill('2');
     await page.getByRole('button', { name: /Adicionar detalhes/ }).click();
@@ -231,6 +295,7 @@ test.describe('ZERO V1', () => {
     await page.getByTestId('sos-toggle-reasons').click();
     await expect(page.getByTestId('sos-reasons')).toContainText('Dormir melhor');
     await page.getByRole('button', { name: 'Fechar' }).click();
+    await page.getByTestId('sos-close-discard').click();
     // objetivo de dinheiro
     await page.getByRole('link', { name: 'Tendências' }).click();
     await page.getByTestId('goal-title').fill('Tênis novo');

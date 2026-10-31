@@ -16,7 +16,7 @@ export const PLAN: readonly PlanActivity[] = [
   { id: 'p-5', day: -5, title: 'Conte para uma pessoa', how: 'Mande uma mensagem: "vou parar no dia X". Escolha quem não vai fazer piada.', minutes: 1 },
   { id: 'p-4', day: -4, title: 'Reposição de nicotina', how: 'Veja se a UBS mais perto tem tratamento para tabagismo (é gratuito pelo SUS). Ligue 136 se não souber.', minutes: 2 },
   { id: 'p-3', day: -3, title: 'Limpe o ambiente', how: 'Jogue fora isqueiro, cinzeiro, pod reserva e o maço "de emergência". Hoje.', minutes: 2 },
-  { id: 'p-2', day: -2, title: 'Treine o SOS', how: 'Abra o SOS uma vez, sem vontade, só para conhecer. Veja onde ficam "Passou" e "Fumei".', minutes: 2, to: '/sos' },
+  { id: 'p-2', day: -2, title: 'Treine o SOS', how: 'Abra o SOS uma vez, sem vontade, só para conhecer. Veja onde ficam "Diminuiu", "Continua" e o registro de uso.', minutes: 2, to: '/sos' },
   { id: 'p-1', day: -1, title: 'Simplifique amanhã', how: 'Tire da agenda de amanhã o que for evitável e tenso. Deixe água na cabeceira.', minutes: 1 },
   // Fase 1 · dias 0–7: abstinência inicial, gatilhos, enfrentamento, ambiente, rotina
   { id: 'd0', day: 0, title: 'Uma vontade de cada vez', how: 'Hoje o objetivo é um só: chegar na hora de dormir. Quando bater, abra o SOS antes de pensar.', minutes: 1 },
@@ -55,7 +55,7 @@ export const PLAN: readonly PlanActivity[] = [
   // Fase 4 · dias 61–90: manutenção, longo prazo, risco, avaliação
   { id: 'd61', day: 61, title: 'Deixe invisível', how: 'Hoje, nenhuma tarefa sobre fumar. Só abra o app se precisar do SOS.', minutes: 0 },
   { id: 'd64', day: 64, title: 'Sinais de alerta', how: 'Marque sim/não: romantizei o cigarro? fiquei perto de quem fuma? guardei um isqueiro?', minutes: 1 },
-  { id: 'd67', day: 67, title: 'Plano de emergência', how: 'Escreva: "se eu fumar um, nas próximas 24 h eu…". Guarde em Ajustes → motivos.', minutes: 2, to: '/ajustes/perfil' },
+  { id: 'd67', day: 67, title: 'Plano de emergência', how: 'Escreva: "Se eu fumar um, nas próximas 24 h eu…". Guarde em Perfil → metas e plano de emergência. O SOS mostra as linhas que começam com "Se eu".', minutes: 2, to: '/ajustes/perfil' },
   { id: 'd70', day: 70, title: 'Dez semanas', how: 'Registre no diário como está a tosse e o fôlego. Se piorou, procure avaliação.', minutes: 1 },
   { id: 'd73', day: 73, title: 'Três coisas mais fáceis', how: 'Liste 3 coisas que ficaram mais fáceis sem fumar.', minutes: 2 },
   { id: 'd76', day: 76, title: 'Rotina, não motivação', how: 'Confira: as pausas têm outro dono? O dinheiro tem destino? O SOS está a um toque?', minutes: 1 },

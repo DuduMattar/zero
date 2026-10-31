@@ -8,6 +8,7 @@ import { addEvent, saveProfile, stamp, storageEstimate, updateSettings, wipeAll 
 import { epochToLocalInput, formatDateTime, localInputToEpoch } from '../../domain/format';
 import { Button, Card, Field, Label, Segmented, inputCls, useConfirm, useToast } from '../../ui';
 import { ConsumoInput } from '../../ui/ConsumoInput';
+import { STRATEGIES } from '../../content/strategies';
 import { fromConsumption, toConsumption, type ConsumptionInput } from '../../domain/consumption';
 
 export function SettingsPage() {
@@ -90,6 +91,13 @@ export function SettingsPage() {
         <Segmented ariaLabel="Movimento" value={settings.reducedMotion} onChange={(v) => updateSettings({ reducedMotion: v })} options={[{ value: 'system', label: 'Animações: sistema' }, { value: 'on', label: 'Reduzir movimento' }]} />
         <Segmented ariaLabel="Modo discreto" value={settings.discreetMode ? 'on' : 'off'} onChange={(v) => updateSettings({ discreetMode: v === 'on' })} options={[{ value: 'off', label: 'Números visíveis' }, { value: 'on', label: 'Modo discreto' }]} />
         <div className="text-[0.8rem] text-ink-3">Modo discreto borra os números do painel para usar o app em público. O ícone ◎ no topo do painel alterna.</div>
+        <Field label="Estratégia com que o SOS abre" hint="Escolha sua. O app não escolhe por você.">
+          <select className={inputCls} value={settings.favoriteStrategy ?? 'breathing'} onChange={(e) => updateSettings({ favoriteStrategy: e.target.value })}>
+            {STRATEGIES.filter((x) => !x.requiresNrt || profile.nrt.uses).map((x) => (
+              <option key={x.id} value={x.id}>{x.label}</option>
+            ))}
+          </select>
+        </Field>
         <Field label="Duração padrão do SOS">
           <select className={inputCls} value={settings.sosDefaultDurationSec} onChange={(e) => updateSettings({ sosDefaultDurationSec: Number(e.target.value) })}>
             {[120, 180, 300, 600].map((s) => (

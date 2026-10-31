@@ -35,7 +35,7 @@ function statsIn(events: AppEvent[], from: number, to: number): WeekStats {
   const drops = cr.map(cravingDrop).filter((d): d is number => d != null);
   return {
     cravings: cr.length,
-    resisted: cr.filter((e) => e.outcome === 'resisted').length,
+    resisted: cr.filter((e) => e.outcome === 'resisted' || e.outcome === 'continued').length,
     avgIntensity: avg(firsts),
     avgDrop: avg(drops),
     mood: avg(di.map((d) => d.mood)),
@@ -63,7 +63,7 @@ export function weeklyReview(events: AppEvent[], now: number): WeeklyReview {
   else if (thisWeek.cravings > lastWeek.cravings) lines.push(`Mais vontades registradas: ${thisWeek.cravings} contra ${lastWeek.cravings} na semana anterior. Registrar mais também conta.`);
   else lines.push(`${thisWeek.cravings} vontades registradas, igual à semana anterior.`);
 
-  if (thisWeek.cravings) lines.push(`${thisWeek.resisted} de ${thisWeek.cravings} passaram sem consumo.`);
+  if (thisWeek.cravings) lines.push(`${thisWeek.resisted} de ${thisWeek.cravings} registradas sem uso.`);
   if (thisWeek.avgIntensity != null && lastWeek.avgIntensity != null) {
     const d = thisWeek.avgIntensity - lastWeek.avgIntensity;
     if (Math.abs(d) >= 0.5) lines.push(`Intensidade média ${d < 0 ? 'menor' : 'maior'}: ${fmt1(thisWeek.avgIntensity)} contra ${fmt1(lastWeek.avgIntensity)}.`);

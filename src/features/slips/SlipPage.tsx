@@ -1,8 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useData } from '../../app/hooks/useData';
 import { addEvent, stamp } from '../../data/repos';
-import { bestStrategy } from '../../domain/craving';
 import { epochToLocalInput, humanDuration, localInputToEpoch, wholeDays } from '../../domain/format';
 import { MS_DAY } from '../../domain/tracks';
 import { PRODUCTS, productById, type ProductId } from '../../domain/types';
@@ -39,7 +38,6 @@ export function SlipPage() {
   const [mWhen, setMWhen] = useState(() => epochToLocalInput(Date.now(), Intl.DateTimeFormat().resolvedOptions().timeZone));
   const [mReason, setMReason] = useState('');
 
-  const best = useMemo(() => (data ? bestStrategy(data.events) : null), [data]);
   if (!data) return null;
   const { profile, events, tracks, now } = data;
   const recentSlips = events.filter((e) => e.type === 'slip' && now - e.at < 72 * 3_600_000).length;
@@ -83,7 +81,7 @@ export function SlipPage() {
 
   if (done === 'slip') {
     const main = tracks.tobaccoOrVape;
-    const strat = best ? strategyById(best.strategy) : strategyById('breathing');
+    const strat = strategyById(data!.settings.favoriteStrategy ?? 'breathing');
     return (
       <div className="space-y-3 pt-2">
         <Label>Registrado</Label>
@@ -98,7 +96,7 @@ export function SlipPage() {
           <Label>Próxima hora</Label>
           <ul className="space-y-1.5 text-[14px]">
             <li>• Tire do alcance o que sobrou (pod, maço, isqueiro). Agora, não depois.</li>
-            <li>• Se vier outra vontade, use <b>{strat.label.toLowerCase()}</b>{best ? ' (a que mais funcionou com você)' : ''}.</li>
+            <li>• Se vier outra vontade, use <b>{strat.label.toLowerCase()}</b>, sua estratégia preferida.</li>
             <li>• Beba água, coma algo e saia do lugar onde fumou.</li>
             {profile.reasons[0] ? <li>• Seu motivo: <b>{profile.reasons[0]}</b>.</li> : null}
           </ul>

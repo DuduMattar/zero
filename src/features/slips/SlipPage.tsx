@@ -157,6 +157,7 @@ export function SlipPage() {
           <p className="text-[13px] text-ink-2">Lapso = um episódio isolado. Encerra a sequência das trilhas afetadas e reabre no mesmo instante. Dias acumulados e recorde não mudam.</p>
           <div>
             <Label className="mb-2">O que foi usado?</Label>
+            {profile.nrt.uses ? <div className="mb-2 text-[0.8rem] text-ink-3">Adesivo, goma e pastilha do tratamento não são uso: registre doses em Ajustes → Reposição de nicotina.</div> : null}
             <div className="flex flex-wrap gap-2">
               {selectable.map((p) => (
                 <Chip key={p.id} active={product === p.id} onClick={() => { setProduct(p.id); setHadNicotine(p.nicotineByDefault); }}>

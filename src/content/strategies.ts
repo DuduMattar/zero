@@ -6,6 +6,8 @@ export interface Strategy {
   steps: string[];
   guided: 'breathing' | 'delay' | 'mindfulness' | 'none';
   defaultSec: number;
+  /** só aparece para quem declarou reposição de nicotina no perfil */
+  requiresNrt?: boolean;
 }
 
 export const STRATEGIES: readonly Strategy[] = [
@@ -36,6 +38,15 @@ export const STRATEGIES: readonly Strategy[] = [
   { id: 'water', label: 'Beber água', short: 'Água', steps: ['Encha um copo grande.', 'Beba devagar, goles pequenos.', 'Sinta a temperatura e o gosto.'], guided: 'none', defaultSec: 120 },
   { id: 'walk', label: 'Caminhada curta', short: 'Caminhar', steps: ['Levante e saia do lugar onde você está.', 'Caminhe por 5 minutos, ritmo confortável.', 'Preste atenção nos pés tocando o chão.'], guided: 'none', defaultSec: 300 },
   { id: 'environment', label: 'Mudar de ambiente', short: 'Mudar', steps: ['Saia do cômodo ou da situação.', 'Vá para um lugar onde você nunca fumou.', 'Fique lá até a vontade baixar.'], guided: 'none', defaultSec: 180 },
+  {
+    id: 'nrt_fast',
+    label: 'Goma ou pastilha de reposição',
+    short: 'Reposição',
+    steps: ['Use a goma ou a pastilha como o profissional orientou.', 'Goma: mastigue até formar gosto, pare e deixe na bochecha; repita.', 'A dose fica registrada como parte do tratamento, não como uso.'],
+    guided: 'none',
+    defaultSec: 300,
+    requiresNrt: true,
+  },
   { id: 'reasons', label: 'Ler meus motivos', short: 'Motivos', steps: ['Leia seus motivos, um por um, devagar.', 'Escolha o mais forte hoje.', 'Diga em voz baixa por que ele importa.'], guided: 'none', defaultSec: 120 },
 ];
 

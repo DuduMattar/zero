@@ -127,7 +127,7 @@ test.describe('ZERO V1', () => {
     await expect(page.getByRole('link', { name: /Registrar um uso/ })).toBeVisible();
     await page.getByTestId('sos').click();
     await page.getByTestId('sos-smoked').click();
-    await expect(page.getByText('Houve uso')).toBeVisible();
+    await expect(page.getByText('Fumei ou vapei', { exact: true })).toBeVisible();
     await page.getByTestId('sos-save-slipped').click();
     await expect(page).toHaveURL(/lapso/);
     await page.getByTestId('slip-units').fill('2');

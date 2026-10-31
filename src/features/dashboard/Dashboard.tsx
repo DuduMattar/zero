@@ -214,7 +214,7 @@ export function Dashboard() {
       ) : null}
 
       <div className="pt-2 text-center">
-        <Link to="/lapso" className="text-[0.9rem] font-semibold text-ink-3 underline-offset-4 hover:underline">Fumei ou usei nicotina? Registrar um uso</Link>
+        <Link to="/lapso" className="text-[0.9rem] font-semibold text-ink-3 underline-offset-4 hover:underline">Fumei, vapei ou usei sachê? Registrar um uso</Link>
       </div>
     </div>
   );

@@ -43,7 +43,8 @@ export function Sos() {
   const strat = strategyById(s.strategy);
   const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
   const ss = String(remaining % 60).padStart(2, '0');
-  const ordered = best ? [strategyById(best.strategy), ...STRATEGIES.filter((x) => x.id !== best.strategy)] : [...STRATEGIES];
+  const available = STRATEGIES.filter((x) => !x.requiresNrt || data.profile.nrt.uses);
+  const ordered = best ? [strategyById(best.strategy), ...available.filter((x) => x.id !== best.strategy)] : [...available];
   const baselineOpen = s.intensityBefore == null && elapsed <= BASELINE_WINDOW_SEC;
   const emergency = data.profile.goals.filter((g) => /^se eu/i.test(g));
 
@@ -53,6 +54,11 @@ export function Sos() {
       const final = cravingReducer(s, { type: 'finish', outcome, now: Date.now() });
       const ev = toCravingEvent(final, stamp(Date.now(), data!.profile.tz).id, data!.profile.tz, Date.now());
       await addEvent(ev);
+      if (s.strategy === 'nrt_fast' && data!.profile.nrt.uses) {
+        // Goma/pastilha dentro do tratamento: dose, não uso. Não toca em nenhuma trilha.
+        const k = data!.profile.nrt.kind;
+        await addEvent({ ...stamp(Date.now(), data!.profile.tz), type: 'nrt_dose', at: s.startedAt, kind: k === 'gum' || k === 'lozenge' ? k : 'gum', mg: null, note: 'Durante uma vontade (SOS)' });
+      }
       if (outcome === 'slipped') nav('/lapso?from=sos', { replace: true });
       else {
         toast(outcome === 'resisted' ? 'Registrado.' : 'Registrado. Volte quando precisar.');
@@ -176,7 +182,7 @@ export function Sos() {
               Continua
             </Button>
             <Button size="lg" onClick={() => dispatch({ type: 'toExit', now: Date.now(), outcome: 'slipped' })} data-testid="sos-smoked">
-              Usei
+              Fumei / vapei
             </Button>
           </div>
         </div>
@@ -221,8 +227,9 @@ export function Sos() {
   const slipped = s.outcome === 'slipped';
   return (
     <div className="space-y-4 pt-2">
-      <Label>{slipped ? 'Houve uso' : 'A vontade diminuiu'}</Label>
+      <Label>{slipped ? 'Fumei ou vapei' : 'A vontade diminuiu'}</Label>
       <h1 className="text-2xl font-bold leading-tight">{slipped ? 'Vamos registrar o que foi. Primeiro, como está a vontade agora?' : 'Como está a vontade agora?'}</h1>
+      {slipped && data.profile.nrt.uses ? <p className="text-[0.85rem] text-ink-3">Adesivo, goma ou pastilha do tratamento não contam como uso. Se foi só isso, volte e escolha a estratégia "Reposição".</p> : null}
       <Scale ariaLabel="Intensidade final" value={s.intensityAfter} onChange={(v) => dispatch({ type: 'setAfter', intensity: v })} labels={['nada', 'insuportável']} />
       <div>
         <Label className="mb-2">O que puxou? (opcional)</Label>

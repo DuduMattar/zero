@@ -29,6 +29,7 @@ export function InstallPage() {
         <ul className="space-y-1.5 text-[13px] text-ink-2">
           <li>• O app instalado e o Safari têm <b className="text-ink">armazenamentos separados</b>. O que você registrou no Safari não aparece sozinho no app instalado (e vice-versa). Para migrar: exporte um backup num e importe no outro.</li>
           <li>• Em site aberto no Safari, o iOS pode <b className="text-ink">apagar os dados após 7 dias sem uso</b>. Instalado, o risco cai, mas não some: continue fazendo backup externo.</li>
+          <li className="text-danger">• <b>Remover o app da tela de início apaga todos os dados dele</b>, inclusive os backups locais. Isso vale também para trocar o ícone (o iPhone só atualiza o ícone reinstalando). Antes de remover, exporte um backup em Ajustes → Backups e importe depois.</li>
           <li>• Instalado, abre em tela cheia, sem barra do navegador, e o SOS fica a um toque do ícone.</li>
         </ul>
       </Card>

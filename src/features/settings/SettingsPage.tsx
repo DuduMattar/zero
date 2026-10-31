@@ -118,6 +118,11 @@ export function SettingsPage() {
         ) : (
           <div className="text-[12px] text-accent">✓ Rodando como app instalado.</div>
         )}
+        {isStandalone() ? (
+          <div className="text-[12px] text-danger">Remover o app da tela de início apaga todos os dados. Exporte um backup antes.</div>
+        ) : (
+          null
+        )}
       </Card>
 
       <Card className="space-y-4 p-6">

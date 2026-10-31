@@ -63,6 +63,28 @@ Direção "espaço para seguir" (revisão externa; contrastes AA recalculados e 
 - Ícone do app, `theme-color`, manifest e imagem de compartilhar nas cores novas.
 Testes: 49 unitários, 8 ponta a ponta. Capturas claro/escuro conferidas no Chrome emulando iPhone 13; não testado em iPhone real.
 
+## V3 — entrega 3 (rodada 2 da revisão externa) publicada em 31/10/2026
+
+Origem: `docs/BRIEF-GPT-ROUND2.md` + resposta do revisor, que usou o site publicado. Dois conjuntos, publicados juntos.
+
+**3a · SOS, persistência e apoio**
+- **Bug desde a V1:** `button, input… { font: inherit; color: inherit }` fora das camadas do Tailwind anulava `text-accent-ink`, peso e tamanho dos botões (contraste 1,4:1 no escuro). Resets agora em `@layer base`, classes de componente em `@layer components`. Teste ponta a ponta mede o estilo computado do botão principal.
+- **Bug:** `useData` entregava `DEFAULT_SETTINGS` enquanto os ajustes carregavam; o SOS abria "do zero" e sobrescrevia o rascunho. Agora `useData` só retorna com ajustes carregados.
+- Episódio do SOS gravado em `settings.sosDraft` a cada passo; retomado ao reabrir (até 6 h); painel mostra "Voltar à vontade em andamento". "Fechar" abre folha: salvar como *encerrada sem avaliação final* (`outcome: 'abandoned'`) ou *descartar* (abertura acidental). Sem corte de 30 s.
+- `strategies[]` guarda todas as estratégias da sessão; trocar reinicia o tempo sugerido. Só sessões de estratégia única com ≥ 2 medidas entram na comparação (`comparable`); registros antigos sem `strategies` ficam fora. Tabela em Tendências é descritiva, ordenada por uso; **a sugestão automática de "melhor estratégia" foi removida**. Estratégia de abertura escolhida pelo usuário em Ajustes (`favoriteStrategy`).
+- Nenhuma avaliação é "pré-intervenção": o campo `intensityBefore` passa a significar *primeira avaliação, aos X s*; "variação" = primeira − última.
+- Reposição: escolher a estratégia não registra dose. Na saída, se `nrt_fast` esteve na sessão (mesmo após troca), pergunta "Você usou a reposição?" com tipo; dose gravada com o horário da confirmação.
+- Tela "Continua": "O que ajudaria agora?" → Tentar outra estratégia / Falar com {pessoa de apoio} (WhatsApp `wa.me` com mensagem pronta, nada enviado sozinho) / Encerrar e salvar; "Ler meus motivos" só se há motivos. Disque 136 saiu do SOS. `profile.support` editável no Perfil.
+- Saída "Diminuiu": gatilhos recolhidos em "Adicionar contexto". Botão de uso: "Fumei" / "Vapei" / "Usei" (sachê ou mistura); sem reposição na sessão, vai direto ao registro de uso.
+- Escala 0–10 em duas linhas, alvos de 12 de altura. Círculo só na respiração; primeira instrução em destaque.
+- Rótulos: "Vontade diminuiu" / "Vontade continuava ao sair" / "Encerrada sem avaliação final"; contagens "sem uso" = diminuiu + continuava (conquistas, revisão, painel).
+
+**3b · Painel e conteúdo**
+- Ordem: SOS → contador → Como você está → Uma ação para hoje → revisão → referência → mensagem → trilhas. Referência sem barra nem contagem regressiva. Ação da mensagem do dia só aparece quando não há "Uma ação para hoje". Em recaída, `RELAPSE_MESSAGE` no lugar da mensagem do dia.
+- Primeira tela: "Ajuda na vontade. Clareza no seu progresso."
+- `messages.pt-BR.ts` e `plan90.pt-BR.ts` reescritos com a tabela do revisor, encurtada: afirmação clínica delimitada a cigarro e com cautela (reposição: +50–60% segundo Cochrane, não "dobra"); instrução direta sem ressalva; nada presume estado; dia 3 sem "72 horas"; dia 80 cita marcos que existem (9 meses, 1 ano); dia 67 aponta para o campo que o SOS lê.
+Testes: 49 unitários, 9 ponta a ponta (inclui: rascunho sobrevive a recarregar, WhatsApp sem envio, fechar sem duplicar nem inventar dose, contraste computado).
+
 ## Futuro — decisões tomadas em 31/10/2026
 
 - **Chat com IA: adiado.** Decisão do usuário: pode virar recurso pago para terceiros no lançamento; por enquanto, não. Quando entrar, exige servidor (chave da API nunca no aparelho de terceiros; cobrança e controle de uso), ou seja, o ZERO deixa de ser "sem backend" nesse dia. Para uso pessoal antes disso, a alternativa é chave própria colada em Ajustes (só no aparelho), opt-in, com aviso de que os dados saem do aparelho. Requisitos já definidos: contexto compacto (dias, produtos, lapsos recentes, motivos, gatilhos), regras fixas (nada causal, nada de culpa, nada de dose, SAMU 192 e CVV 188 em crise), bateria de ~20 mensagens de vontade antes de ligar.

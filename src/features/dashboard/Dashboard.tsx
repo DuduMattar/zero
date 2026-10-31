@@ -2,12 +2,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useData } from '../../app/hooks/useData';
 import { isStandalone } from '../../app/hooks/useNow';
 import { formatTime, formatDate, humanDuration, wholeDays } from '../../domain/format';
-import { messageForDay } from '../../content/messages.pt-BR';
+import { RELAPSE_MESSAGE, messageForDay } from '../../content/messages.pt-BR';
 import { programDay, phaseOf, PHASE_LABEL } from '../../domain/program';
 import { MS_DAY, type TrackResult } from '../../domain/tracks';
 import { timelinePosition, EVIDENCE_LABEL } from '../../domain/timeline';
 import type { TrackId } from '../../domain/types';
-import { Button, Card, Label, Progress, useToast } from '../../ui';
+import { Button, Card, Label, useToast } from '../../ui';
 import { PlanCard } from './PlanCard';
 import { IconEye, IconEyeOff, IconGear } from '../../ui/icons';
 import { validDraft } from '../sos/Sos';
@@ -48,7 +48,7 @@ export function Dashboard() {
   const preparing = profile.quitAt > now;
   const relapsing = main.state === 'relapse';
   const day = programDay(profile.quitAt, now, profile.tz);
-  const msg = messageForDay(day);
+  const msg = relapsing ? RELAPSE_MESSAGE : messageForDay(day);
   const tl = timelinePosition(main.runMs); // relógio de saúde: lapsos isolados não zeram
   const todayKey = formatDate(now, profile.tz);
   const diaryToday = events.find((e) => e.type === 'diary' && formatDate(e.at, profile.tz) === todayKey);
@@ -129,52 +129,6 @@ export function Dashboard() {
         </section>
       )}
 
-      {!relapsing ? <PlanCard day={day} events={events} tz={profile.tz} now={now} /> : null}
-      {isSunday(now, profile.tz) && events.length > 0 ? <ReviewCard events={events} now={now} /> : null}
-
-      {!preparing && !relapsing && (tl.current || tl.next) ? (
-        <Link to="/linha-do-tempo" className="block">
-          <Card className="space-y-3 p-6">
-            <div className="flex items-center justify-between">
-              <Label>Referência de recuperação</Label>
-              <span className="text-[0.75rem] text-ink-3">{tl.current ? EVIDENCE_LABEL[tl.current.evidence] : ''}</span>
-            </div>
-            <div className="text-[0.85rem] text-ink-3">Há <span className="tabular sensitive">{humanDuration(main.runMs)}</span> desde o início desta tentativa. Para quem parou de fumar, estudos descrevem por volta deste prazo:</div>
-            {tl.current ? (
-              <>
-                <div className="text-[1.15rem] font-semibold leading-snug">{tl.current.title}</div>
-                <p className="text-ink-2">{tl.current.body}</p>
-              </>
-            ) : (
-              <p className="text-ink-2">Os primeiros efeitos descritos começam em minutos. Abra a linha do tempo para ver o que vem.</p>
-            )}
-            {tl.next ? (
-              <div>
-                <div className="mb-1.5 flex justify-between text-[0.8rem] text-ink-3">
-                  <span>Próximo: {tl.next.whenLabel}</span>
-                  <span>em {humanDuration(tl.next.whenHours * 3_600_000 - main.runMs)}</span>
-                </div>
-                <Progress value01={tl.progress01} />
-              </div>
-            ) : null}
-            {profile.products.includes('vape') && !profile.products.some((p) => p === 'cigarette' || p === 'rolled' || p === 'cigar') ? (
-              <div className="text-[0.75rem] text-warn">Prazos de estudos com cigarro; para quem usava só vape, a evidência é limitada.</div>
-            ) : null}
-            <div className="text-[0.75rem] text-ink-3">Média de estudos, não medição do seu corpo.</div>
-          </Card>
-        </Link>
-      ) : null}
-
-      <Card className="space-y-2 p-6">
-        <div className="flex items-center justify-between">
-          <Label>Mensagem do dia</Label>
-          <span className="text-[0.75rem] text-ink-3">{PHASE_LABEL[phaseOf(day)].split(' · ')[0]}</span>
-        </div>
-        <div className="text-[1.15rem] font-semibold leading-snug">{msg.title}</div>
-        <p className="text-ink-2">{msg.body}</p>
-        {msg.action ? <div className="mt-1 text-[0.9rem] font-semibold text-accent">→ {msg.action}</div> : null}
-      </Card>
-
       <Card className="p-6">
         <Label>Como você está</Label>
         <div className="mb-3 text-[0.85rem] text-ink-3">Humor, sono e vontade. Menos de um minuto.</div>
@@ -194,6 +148,45 @@ export function Dashboard() {
           </div>
         )}
       </Card>
+
+      {!relapsing ? <PlanCard day={day} events={events} tz={profile.tz} now={now} /> : null}
+      {isSunday(now, profile.tz) && events.length > 0 ? <ReviewCard events={events} now={now} /> : null}
+
+      {!preparing && !relapsing && (tl.current || tl.next) ? (
+        <Link to="/linha-do-tempo" className="block">
+          <Card className="space-y-3 p-6">
+            <div className="flex items-center justify-between">
+              <Label>Referência de recuperação</Label>
+              <span className="text-[0.75rem] text-ink-3">{tl.current ? EVIDENCE_LABEL[tl.current.evidence] : ''}</span>
+            </div>
+            <div className="text-[0.85rem] text-ink-3">Há <span className="tabular sensitive">{humanDuration(main.runMs)}</span> desde o início desta tentativa. Para quem parou de fumar, estudos descrevem por volta deste prazo:</div>
+            {tl.current ? (
+              <>
+                <div className="text-[1.15rem] font-semibold leading-snug">{tl.current.title}</div>
+                <p className="text-ink-2">{tl.current.body}</p>
+              </>
+            ) : (
+              <p className="text-ink-2">Os primeiros efeitos descritos começam em minutos. Abra a linha do tempo para ver o que vem.</p>
+            )}
+            {tl.next ? <div className="text-[0.8rem] text-ink-3">Próximo marco descrito: {tl.next.whenLabel}.</div> : null}
+            {profile.products.includes('vape') && !profile.products.some((p) => p === 'cigarette' || p === 'rolled' || p === 'cigar') ? (
+              <div className="text-[0.75rem] text-warn">Prazos de estudos com cigarro; para quem usava só vape, a evidência é limitada.</div>
+            ) : null}
+            <div className="text-[0.75rem] text-ink-3">Média de estudos, não medição do seu corpo.</div>
+          </Card>
+        </Link>
+      ) : null}
+
+      <Card className="space-y-2 p-6">
+        <div className="flex items-center justify-between">
+          <Label>Mensagem do dia</Label>
+          <span className="text-[0.75rem] text-ink-3">{PHASE_LABEL[phaseOf(day)].split(' · ')[0]}</span>
+        </div>
+        <div className="text-[1.15rem] font-semibold leading-snug">{msg.title}</div>
+        <p className="text-ink-2">{msg.body}</p>
+        {msg.action && (relapsing || day > 90) ? <div className="mt-1 text-[0.9rem] font-semibold text-accent">→ {msg.action}</div> : null}
+      </Card>
+
 
       <section className="px-1">
         <Label className="mb-1">Trilhas</Label>

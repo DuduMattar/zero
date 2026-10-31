@@ -98,9 +98,9 @@ export function Onboarding() {
     <div key="0" className="space-y-4">
       <div className="pt-6">
         <div className="display text-[0.8rem] font-bold tracking-[0.3em] text-accent">ZERO</div>
-        <h1 className="mt-2 text-3xl font-bold leading-tight">Para parar de fumar. Sem conversa, com registro.</h1>
+        <h1 className="mt-2 text-3xl font-bold leading-tight">Ajuda na vontade. Clareza no seu progresso.</h1>
       </div>
-      <p className="text-ink-2">Não é um chat nem uma IA. É um botão de emergência para as vontades, um contador que não mente, um diário e um histórico honesto, com lapsos e tudo.</p>
+      <p className="text-ink-2">Registre como você está, escolha uma ação e acompanhe seus períodos sem fumar ou usar vape. Sem chat, sem IA: ferramentas e registro.</p>
       <ul className="space-y-2 text-[14px] text-ink-2">
         <li>• Seus dados ficam <b className="text-ink">só neste aparelho</b>. Nada vai para servidor. Remover o app da tela de início apaga tudo: faça backup.</li>
         <li>• Sem conta, sem assinatura, sem anúncios.</li>
